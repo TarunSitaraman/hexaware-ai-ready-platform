@@ -1,4 +1,4 @@
--- Hexaware Macro Platform — Bootstrap SQL
+-- Macro Intelligence Platform — Bootstrap SQL
 -- Run once against Neon PostgreSQL (pgvector must be available)
 
 -- Enable required extensions

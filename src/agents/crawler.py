@@ -74,7 +74,7 @@ class DynamicCrawlerAgent:
         import httpx
         try:
             async with httpx.AsyncClient(timeout=settings.crawl_timeout) as client:
-                resp = await client.get(url, headers={"User-Agent": "HexawareMacro/1.0"})
+                resp = await client.get(url, headers={"User-Agent": "MacroPlatform/1.0"})
                 resp.raise_for_status()
                 # Strip HTML tags roughly
                 import re

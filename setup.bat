@@ -1,6 +1,6 @@
 @echo off
 echo ============================================
-echo  Hexaware Macro Platform - Local Setup
+echo  Macro Intelligence Platform - Local Setup
 echo ============================================
 
 REM 1. Create virtual environment

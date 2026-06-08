@@ -8,7 +8,7 @@ from src.database import (
     SilverRecord, SourceConfig,
 )
 
-st.title("🏠 Hexaware Macro Data Platform")
+st.title("🏠 Macro Intelligence Platform")
 st.caption("AI-Enabled Financial Services Macroeconomic Intelligence")
 
 # ── KPI row ────────────────────────────────────────────────────────────────────

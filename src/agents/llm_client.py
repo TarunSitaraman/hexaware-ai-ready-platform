@@ -34,7 +34,7 @@ class LLMClient:
         self._openrouter = _client(
             settings.openrouter_base_url,
             settings.openrouter_api_key,
-            {"HTTP-Referer": "https://hexaware-macro-platform.io", "X-Title": "Hexaware Macro Platform"},
+            {"HTTP-Referer": "https://macro-platform.io", "X-Title": "Macro Intelligence Platform"},
         )
 
     async def __aenter__(self):

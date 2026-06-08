@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Starting Hexaware Macro Platform API")
+    logger.info("Starting Macro Intelligence Platform API")
     init_db()
     yield
     logger.info("Shutdown complete")
@@ -26,7 +26,7 @@ async def lifespan(app: FastAPI):
 def create_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(
-        title="Hexaware Macro Platform API",
+        title="Macro Intelligence Platform API",
         description="Macroeconomic data intelligence platform — REST API",
         version="1.0.0",
         lifespan=lifespan,

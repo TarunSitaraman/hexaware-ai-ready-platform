@@ -68,7 +68,7 @@ def seed_sources(db):
 
 
 if __name__ == "__main__":
-    print("Initialising Hexaware Macro Platform database...")
+    print("Initialising Macro Intelligence Platform database...")
     print("  Creating tables and enabling pgvector...")
     try:
         init_db()

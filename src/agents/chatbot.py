@@ -25,7 +25,7 @@ OUT_OF_SCOPE_TRIGGERS = {
     "celebrity", "dating", "cooking", "fashion",
 }
 
-CHAT_SYSTEM = """You are a macroeconomic data analyst assistant for Hexaware's Financial Services Platform.
+CHAT_SYSTEM = """You are a macroeconomic data analyst assistant for the Macro Intelligence Platform.
 You answer questions about macroeconomic indicators: GDP, inflation, unemployment, trade balances, government debt, and related topics.
 
 RULES:

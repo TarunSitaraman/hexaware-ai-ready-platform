@@ -3,9 +3,9 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.backends.legacy:build"
 
 [project]
-name = "hexaware-macro-platform"
+name = "macro-intelligence-platform"
 version = "1.0.0"
-description = "Hexaware AI-Enabled Macroeconomic Data Intelligence Platform"
+description = "AI-Enabled Macroeconomic Data Intelligence Platform"
 requires-python = ">=3.11"
 
 [tool.setuptools.packages.find]

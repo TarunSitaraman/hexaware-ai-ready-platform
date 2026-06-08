@@ -15,7 +15,7 @@ nest_asyncio.apply()
 import streamlit as st
 
 st.set_page_config(
-    page_title="Hexaware Macro Platform",
+    page_title="Macro Intelligence Platform",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -33,7 +33,7 @@ page_list = [
 ]
 
 with st.sidebar:
-    st.markdown("## Hexaware Macro Platform")
+    st.markdown("## Macro Intelligence Platform")
     st.caption("Financial Services Practice")
     st.divider()
 

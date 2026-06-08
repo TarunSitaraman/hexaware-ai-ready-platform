@@ -4,7 +4,7 @@
 services:
   # ── FastAPI backend ──────────────────────────────────────────────────────────
   - type: web
-    name: hexaware-macro-api
+    name: macro-api
     runtime: docker
     dockerfilePath: docker/Dockerfile.api
     plan: starter
@@ -25,7 +25,7 @@ services:
 
   # ── Streamlit UI ─────────────────────────────────────────────────────────────
   - type: web
-    name: hexaware-macro-ui
+    name: macro-ui
     runtime: docker
     dockerfilePath: docker/Dockerfile.streamlit
     plan: starter

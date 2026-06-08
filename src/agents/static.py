@@ -15,7 +15,7 @@ from src.config import (
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
-_USER_AGENT = "HexawareMacroPlatform/1.0 (data research; contact@hexaware.com)"
+_USER_AGENT = "MacroPlatform/1.0 (data research)"
 
 
 class WorldBankAgent:

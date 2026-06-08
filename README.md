@@ -1,6 +1,6 @@
-# Hexaware Macro Intelligence Platform
+# Macro Intelligence Platform
 
-An agentic macroeconomic data intelligence platform built for Hexaware's Financial Services Practice. Ingests, validates, and serves macroeconomic indicator data through a medallion architecture, with a RAG-powered chatbot and multi-provider LLM routing.
+An agentic macroeconomic data intelligence platform. Ingests, validates, and serves macroeconomic indicator data through a medallion architecture, with a RAG-powered chatbot and multi-provider LLM routing.
 
 ---
 
@@ -64,7 +64,7 @@ Every record receives a composite DQ score (0–100) based on four sub-scores:
 ## Project Structure
 
 ```
-hexaware-macro-platform/
+macro-platform/
 ├── src/
 │   ├── agents/
 │   │   ├── pipeline.py      # Bronze→Silver→Gold orchestration
@@ -109,8 +109,8 @@ hexaware-macro-platform/
 ### 1. Clone and set up environment
 
 ```bash
-git clone https://github.com/TarunSitaraman/hexaware-macro-platform.git
-cd hexaware-macro-platform
+git clone https://github.com/TarunSitaraman/macro-platform.git
+cd macro-platform
 python -m venv .venv
 .venv\Scripts\activate        # Windows
 # source .venv/bin/activate   # macOS/Linux
