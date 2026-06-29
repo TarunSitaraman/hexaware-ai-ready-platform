@@ -1,239 +1,297 @@
-# Macro Intelligence Platform
+# AI-Ready Data Platform — Macroeconomic Advisory MVP
 
-An agentic macroeconomic data intelligence platform. Ingests, validates, and serves macroeconomic indicator data through a medallion architecture, with a RAG-powered chatbot and multi-provider LLM routing.
+> **Enterprise-grade macroeconomic data platform** that transforms raw CSV data into AI-ready embeddings, enabling intelligent analysis through a RAG-powered chatbot.
 
----
-
-## What It Does
-
-The platform continuously pulls macroeconomic data from public APIs and web sources, runs it through a Bronze → Silver → Gold quality pipeline, stores production-ready records with vector embeddings in PostgreSQL, and surfaces everything through a Streamlit UI and FastAPI backend.
-
-**Indicators tracked:** GDP (current USD), GDP growth rate, CPI inflation, unemployment rate, current account balance (% GDP), government debt (% GDP)
-
-**Countries covered (Phase 1):** USA, GBR, DEU, FRA, JPN, CHN, IND, BRA, CAN, AUS, KOR, MEX, ITA, ESP, NLD, SAU, ZAF, ARG, IDN, TUR
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)]()
+[![Python](https://img.shields.io/badge/python-3.12-blue.svg)]()
+[![Next.js](https://img.shields.io/badge/Next.js-16-black.svg)]()
+[![Terraform](https://img.shields.io/badge/Terraform-1.5+-purple.svg)]()
 
 ---
 
-## Architecture
+## 🏗️ Architecture Overview
 
 ```
-External Sources          Bronze Layer          Silver Layer          Gold Layer
-─────────────────        ─────────────         ─────────────         ──────────────
-World Bank API    ──▶    Raw records   ──▶     Cleaned &     ──▶     Production     ──▶  Chatbot RAG
-IMF WEO API              (append-only)         DQ-scored             records with         Dashboards
-FRED API                 Full audit trail      DQ ≥ 90% → Auto      embeddings           REST API
-Web crawlers                                   70–90%  → Review      pgvector index       Summaries
-                                               < 70%   → Reject
+┌─────────────┐     ┌──────────────┐     ┌──────────────────────────────────────────┐
+│   Frontend   │────▶│   Backend    │────▶│              Azure Cloud                 │
+│  Next.js 16  │     │  FastAPI     │     │                                          │
+│  React 19    │     │  Python 3.12 │     │  ┌──────────┐  ┌───────────────────┐    │
+│  Tailwind 4  │     │              │     │  │ ADLS Gen2 │  │ Databricks (Unity)│    │
+│  shadcn/ui   │     │  Services:   │     │  │ Raw Zone  │  │ Bronze → Silver   │    │
+│  Recharts    │     │  • Storage   │     │  │ Landing   │  │ → Gold → Features │    │
+│  React Flow  │     │  • Databricks│     │  │           │  │ → Embeddings      │    │
+│              │     │  • AI Search │     │  └──────────┘  └───────────────────┘    │
+│              │     │  • OpenAI    │     │                                          │
+│              │     │  • RAG       │     │  ┌──────────────┐  ┌────────────────┐   │
+│              │     │  • Quality   │     │  │ AI Search    │  │ Azure OpenAI   │   │
+│              │     │              │     │  │ Vector Index │  │ GPT-4o         │   │
+│              │     │  SQLite/PG   │     │  │ Hybrid Query │  │ ada-002        │   │
+└─────────────┘     └──────────────┘     │  └──────────────┘  └────────────────┘   │
+                                          └──────────────────────────────────────────┘
 ```
 
-### Data Quality Scoring
+### Medallion Architecture (Data Pipeline)
 
-Every record receives a composite DQ score (0–100) based on four sub-scores:
-
-| Sub-score | Weight | What it checks |
-|-----------|--------|----------------|
-| Accuracy | 40% | Value parseable, within plausible range, unit matches |
-| Completeness | 30% | No nulls, country/period/source all present |
-| Timeliness | 20% | Data freshness relative to crawl time |
-| Consistency | 10% | Matches expected frequency and source reputation |
-
-- **≥ 90%** → Auto-promoted to Gold
-- **70–90%** → Queued for human review (4-hour SLA)
-- **< 70%** → Rejected with failure reasons logged
+| Layer | Schema | Purpose |
+|-------|--------|---------|
+| **Bronze** | `bronze.macro_raw` | Raw ingestion with schema-on-read, metadata columns |
+| **Silver** | `silver.macro_clean` | Deduplicated, typed, validated, quality-scored |
+| **Gold** | `gold.macro_analytics` | Feature-engineered, text chunks for embedding |
+| **Features** | `features.macro_features` | Time-series features, rolling statistics |
+| **Embeddings** | `embeddings.macro_chunks` | 1536-dim vectors from ada-002 |
+| **Audit** | `audit.data_quality_scores` | Quality scores across all layers |
 
 ---
 
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| UI | Streamlit (multipage) |
-| Backend API | FastAPI + Uvicorn |
-| Database | Neon PostgreSQL + pgvector |
-| ORM | SQLAlchemy 2.0 |
-| Embeddings | Jina AI (`jina-embeddings-v3`, 1024-dim, 1M free tokens/month) |
-| LLM — Primary | Groq (`llama-3.3-70b-versatile`, 14,400 req/day free) |
-| LLM — Fallback | Google Gemini (`gemini-2.0-flash`) |
-| LLM — Last resort | OpenRouter (free-tier models) |
-| Static data | World Bank API, IMF WEO API, FRED API |
-| Web crawling | Crawl4AI + Playwright |
-| Deployment | Render (API + UI), Neon (DB) |
-
----
-
-## Project Structure
-
-```
-macro-platform/
-├── src/
-│   ├── agents/
-│   │   ├── pipeline.py      # Bronze→Silver→Gold orchestration
-│   │   ├── static.py        # WorldBank / IMF / FRED API clients
-│   │   ├── crawler.py       # Crawl4AI web extraction
-│   │   ├── chatbot.py       # RAG chatbot with citation enforcement
-│   │   ├── embeddings.py    # Jina AI embedding client
-│   │   ├── llm_client.py    # Multi-provider LLM with fallback routing
-│   │   ├── qa.py            # DQ scoring engine
-│   │   └── summarizer.py    # Macro summary generation
-│   ├── api/
-│   │   ├── main.py          # FastAPI app
-│   │   └── routes/          # data, pipelines, review, chat, audit
-│   ├── ui/
-│   │   ├── app.py           # Streamlit entry point
-│   │   └── _pages/          # 7 pages (overview, static data, crawler, explorer, review, chatbot, summaries)
-│   ├── config.py            # Pydantic settings + model routing config
-│   └── database.py          # SQLAlchemy models (Bronze, Silver, Gold, Review, Chat)
-├── migrations/
-│   └── init.sql             # Schema with pgvector extension
-├── docker/                  # Dockerfiles for API and UI
-├── tests/unit/              # Pytest unit tests
-├── db_init.py               # One-shot schema creation + seed
-├── setup.bat                # Windows dev setup script
-├── run.bat                  # Launch Streamlit locally
-├── render.yaml              # Render.com deployment config
-└── .env.example             # Environment variable template
-```
-
----
-
-## Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
 
-- Python 3.12+
-- A [Neon](https://neon.tech) PostgreSQL database (free tier)
-- A [Groq](https://console.groq.com) API key (free, 14,400 req/day)
-- A [Jina AI](https://jina.ai) API key (free, 1M tokens/month)
-- A [FRED](https://fred.stlouisfed.org/docs/api/api_key.html) API key (free)
+- **Node.js** 18+ (for frontend)
+- **Python** 3.12+ (for backend)
+- **Docker** & **Docker Compose** (optional)
+- **Azure CLI** (for cloud deployment)
+- **Terraform** 1.5+ (for infrastructure)
 
-### 1. Clone and set up environment
+### 1. Clone & Install
 
 ```bash
-git clone https://github.com/TarunSitaraman/macro-platform.git
-cd macro-platform
-python -m venv .venv
-.venv\Scripts\activate        # Windows
-# source .venv/bin/activate   # macOS/Linux
-pip install -r requirements.txt
+# Clone the repository
+git clone <repo-url>
+cd ai-ready-data-platform
+
+# Install all dependencies
+make setup
+# Or manually:
+pip install -r backend/requirements.txt
+cd frontend && npm install && cd ..
 ```
 
-### 2. Configure environment variables
+### 2. Configure Environment
 
 ```bash
+# Copy environment template
 cp .env.example .env
+
+# Edit .env with your Azure credentials (optional for local development)
+# The app runs in demo/mock mode when Azure credentials are empty
 ```
 
-Edit `.env` and fill in:
-
-```env
-DATABASE_URL=postgresql://user:password@ep-xxx.neon.tech/dbname?sslmode=require
-GROQ_API_KEY=gsk_...
-GEMINI_API_KEY=AQ....          # optional fallback
-OPENROUTER_API_KEY=sk-or-...   # optional fallback
-JINA_API_KEY=jina_...
-FRED_API_KEY=your_fred_key
-```
-
-### 3. Initialise the database
+### 3. Generate Sample Data
 
 ```bash
-python db_init.py
+make seed
+# Generates 20K rows of macroeconomic indicators (5.9 MB CSV)
 ```
 
-This creates all tables, enables the pgvector extension, and seeds the source registry.
+### 4. Run Locally
 
-### 4. Run the platform
+**Option A: Docker Compose**
+```bash
+make run
+# → Frontend: http://localhost:3000
+# → Backend:  http://localhost:8000
+# → API Docs: http://localhost:8000/docs
+```
+
+**Option B: Development Servers**
+```bash
+# Terminal 1: Backend
+cd backend && uvicorn app.main:app --reload --port 8000
+
+# Terminal 2: Frontend
+cd frontend && npm run dev
+
+# → Open http://localhost:3000
+```
+
+### 5. Walk Through the Platform
+
+1. **Dashboard** — Overview of datasets, pipeline runs, and quality scores
+2. **Upload** — Drop `macroeconomic_indicators.csv` to upload
+3. **Pipeline** — Click "Start Pipeline" to process through all stages
+4. **Data Explorer** — Browse Bronze, Silver, Gold layer tables
+5. **Quality** — Radar charts and bar charts of quality dimensions
+6. **Embeddings** — Vector stats and ad-hoc search
+7. **Chat** — Ask questions about your macroeconomic data
+8. **Architecture** — Interactive React Flow diagram of the platform
+9. **Settings** — Configure Azure services
+
+---
+
+## 📁 Project Structure
+
+```
+ai-ready-data-platform/
+├── frontend/                    # Next.js 16 + TypeScript + Tailwind CSS 4
+│   ├── src/
+│   │   ├── app/                 # 9 page routes (App Router)
+│   │   │   ├── page.tsx         # Dashboard
+│   │   │   ├── upload/          # File upload with CSV preview
+│   │   │   ├── pipeline/        # Pipeline orchestration + WebSocket
+│   │   │   ├── chat/            # RAG chatbot with citations
+│   │   │   ├── architecture/    # React Flow interactive diagram
+│   │   │   ├── data/[layer]/    # Data explorer (Bronze/Silver/Gold)
+│   │   │   ├── quality/         # Recharts quality dashboard
+│   │   │   ├── embeddings/      # Vector stats + search
+│   │   │   └── settings/        # Configuration management
+│   │   ├── components/
+│   │   │   ├── ui/              # 15 shadcn/ui components
+│   │   │   └── layout/          # Sidebar, Navbar
+│   │   ├── hooks/               # Custom React hooks (SWR, WebSocket, etc.)
+│   │   ├── lib/                 # API client, constants, utilities
+│   │   └── types/               # TypeScript interfaces
+│   ├── Dockerfile
+│   └── package.json
+├── backend/                     # FastAPI + Python 3.12
+│   ├── app/
+│   │   ├── api/v1/              # 6 API routers
+│   │   ├── core/                # Config, logging, exceptions, middleware
+│   │   ├── services/            # 8 service classes (Azure SDK integration)
+│   │   ├── models/              # Pydantic schemas
+│   │   └── db/                  # SQLAlchemy models + database setup
+│   ├── tests/                   # pytest test suite
+│   ├── Dockerfile
+│   └── requirements.txt
+├── databricks/
+│   ├── notebooks/               # 7 PySpark pipeline notebooks
+│   │   └── shared/              # Config, schema, utils
+│   └── jobs/                    # Job orchestration definitions
+├── infrastructure/
+│   ├── terraform/               # 8 IaC modules + root config
+│   │   ├── modules/             # Resource Group, Storage, Databricks, etc.
+│   │   └── environments/        # dev.tfvars
+│   └── scripts/                 # Provisioning & deployment scripts
+├── sample-data/                 # Data generation scripts + sample CSV
+├── docker-compose.yml           # Multi-container development setup
+├── Makefile                     # Common developer commands
+├── .github/workflows/ci.yml    # GitHub Actions CI pipeline
+└── .env.example                 # Environment variable template
+```
+
+---
+
+## 🔌 API Reference
+
+The FastAPI backend provides automatic OpenAPI documentation at `http://localhost:8000/docs`.
+
+### Key Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/health` | Health check |
+| `GET` | `/api/v1/datasets` | List all datasets |
+| `POST` | `/api/v1/datasets/upload` | Upload CSV file |
+| `DELETE` | `/api/v1/datasets/{id}` | Delete dataset |
+| `POST` | `/api/v1/pipeline/start` | Start pipeline run |
+| `GET` | `/api/v1/pipeline/{run_id}/status` | Get run status |
+| `GET` | `/api/v1/pipeline/history` | Pipeline run history |
+| `WS` | `/api/v1/pipeline/ws` | WebSocket for live updates |
+| `GET` | `/api/v1/quality/{dataset_id}` | Quality scores |
+| `GET` | `/api/v1/quality/{id}/failed-rows` | Failed row details |
+| `GET` | `/api/v1/embeddings/{dataset_id}` | Embedding stats |
+| `GET` | `/api/v1/embeddings/{id}/search` | Vector search |
+| `POST` | `/api/v1/chat` | RAG chatbot query |
+| `GET` | `/api/v1/architecture` | Architecture state |
+
+---
+
+## ☁️ Azure Deployment
+
+### 1. Provision Infrastructure
 
 ```bash
-run.bat          # Windows — launches Streamlit on http://localhost:8501
+cd infrastructure/scripts
+./provision.sh
 ```
 
-Or manually:
+This runs Terraform to create:
+- Resource Group
+- ADLS Gen2 Storage Account (3 containers)
+- Azure Databricks Workspace (Premium)
+- Azure AI Search (Standard S1)
+- Azure OpenAI (GPT-4o + ada-002)
+- Azure Key Vault
+- Log Analytics + Application Insights
+- Azure Data Factory (optional)
+
+### 2. Configure Databricks
 
 ```bash
-set PYTHONPATH=%CD%
-streamlit run src/ui/app.py
+./configure_databricks.sh
+```
+
+Sets up Unity Catalog, metastore, schemas, and storage credentials.
+
+### 3. Deploy Notebooks
+
+```bash
+./upload_notebooks.sh
+```
+
+Uploads all 7 pipeline notebooks and creates job definitions.
+
+### 4. Update Environment
+
+Copy Terraform outputs to `.env`:
+```bash
+terraform output -json | python scripts/env_from_terraform.py > .env
 ```
 
 ---
 
-## UI Pages
+## 🧪 Testing
 
-| Page | Description |
-|------|-------------|
-| Platform Overview | Live KPIs, medallion architecture diagram, source registry |
-| Static Data Product | Trigger World Bank / IMF / FRED ingestion, generate embeddings |
-| Dynamic Crawler | Run web crawlers against financial news sources |
-| Data Explorer | Browse and filter gold records, download CSV |
-| Review Queue | Human-in-the-loop approval for 70–90% DQ records |
-| Chatbot | RAG-powered Q&A with citation enforcement and guardrails |
-| Summary Engine | AI-generated macro summaries (country, indicator, global) |
+```bash
+# Backend tests
+cd backend && python -m pytest tests/ -v
 
----
+# Frontend lint & type-check
+cd frontend && npm run lint && npm run type-check
 
-## LLM Routing
-
-The platform uses a three-tier routing system with automatic fallback:
-
-```
-simple  → intent classification, JSON extraction       → Groq → Gemini → OpenRouter
-medium  → structured extraction, DQ rationale          → Groq → Gemini → OpenRouter
-complex → RAG chat, summaries, multi-indicator reports → Groq → Groq (lite) → Gemini → OpenRouter
+# Full test suite
+make test
 ```
 
-All providers are optional — the client skips any provider whose API key is not set and falls through to the next. If all fail, a clear error lists each failure reason.
+---
+
+## 🛠️ Development
+
+### Adding a New Page
+
+1. Create route in `frontend/src/app/<page>/page.tsx`
+2. Add nav item in `frontend/src/components/layout/sidebar.tsx`
+3. Add API hook in `frontend/src/hooks/use-api.ts`
+4. Create backend route in `backend/app/api/v1/<resource>.py`
+5. Register in `backend/app/api/router.py`
+
+### Adding a New Service
+
+1. Create service class in `backend/app/services/<name>.py`
+2. Add configuration to `backend/app/config.py`
+3. Add to `.env.example`
+4. Initialize in service registry
+
+### Environment Variables
+
+See [.env.example](.env.example) for all configuration options. The platform runs in **demo mode** when Azure credentials are empty, returning realistic mock data.
 
 ---
 
-## Chatbot Guardrails
+## 📄 License
 
-The RAG chatbot enforces topic scope and citation discipline:
-
-- Only answers questions about macroeconomic indicators
-- Declines investment advice requests
-- Cites every numeric claim as `[Source: <source_name>, <period>]`
-- Falls back to most-recent records if no embeddings exist yet
-- Maintains conversation history (last 20 turns) per session
+MIT License — see [LICENSE](LICENSE) for details.
 
 ---
 
-## Data Sources
+## 🤝 Contributing
 
-| Source | Coverage | Auth |
-|--------|----------|------|
-| World Bank Open Data | 20 countries × 6 indicators × multiple years | None (public) |
-| IMF World Economic Outlook | Global, annual forecasts included | None (public) |
-| FRED (US Federal Reserve) | US macroeconomic series | Free API key |
-| Web crawlers | IMF Blog, World Bank Blog (HTML extraction) | None |
-
----
-
-## Deployment (Render + Neon)
-
-1. Push this repo to GitHub
-2. Create a [Render](https://render.com) account and connect the repo
-3. Render auto-detects `render.yaml` and creates two services: API + UI
-4. Set environment variables in the Render dashboard (never commit `.env`)
-5. The Neon database connection string goes in `DATABASE_URL`
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ---
 
-## Environment Variables Reference
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `DATABASE_URL` | Yes | Neon PostgreSQL connection string |
-| `GROQ_API_KEY` | Recommended | Primary LLM provider (free) |
-| `GEMINI_API_KEY` | Optional | Fallback LLM (Google AI Studio) |
-| `OPENROUTER_API_KEY` | Optional | Last-resort LLM fallback |
-| `JINA_API_KEY` | Yes | Embeddings for RAG search |
-| `FRED_API_KEY` | Yes | US Federal Reserve data |
-| `DQ_AUTO_PROMOTE_THRESHOLD` | No | Default: 90 |
-| `DQ_REVIEW_THRESHOLD` | No | Default: 70 |
-| `REVIEW_SLA_HOURS` | No | Default: 4 |
-
----
-
-## License
-
-MIT
+*Built with ❤️ for Hexaware's AI-Ready Data Platform initiative.*

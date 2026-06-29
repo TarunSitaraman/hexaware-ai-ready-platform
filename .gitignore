@@ -1,32 +1,44 @@
 # Python
-.venv/
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
 *.egg-info/
 dist/
 build/
-.eggs/
+*.egg
+.venv/
+venv/
+
+# Node
+node_modules/
+.next/
+out/
+
+# Data
+data/
+*.db
+
+# Logs
+logs/
+*.log
 
 # Environment
 .env
-
-# Streamlit
-.streamlit/secrets.toml
+.env.local
 
 # IDE
-.vscode/
 .idea/
+.vscode/
 *.swp
+*.swo
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Logs
-*.log
+# Terraform
+infrastructure/terraform/.terraform/
+infrastructure/terraform/*.tfstate
+infrastructure/terraform/*.tfstate.backup
 
-# Test artifacts
-.pytest_cache/
-.coverage
-htmlcov/
+# Docker
+.docker/
