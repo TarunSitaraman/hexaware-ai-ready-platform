@@ -40,9 +40,10 @@ class HybridRAGService:
                 df = df.tail(3)
             
             for _, row in df.iterrows():
-                text = f"In {row.get('date', 'Unknown')}, US Real GDP was {row.get('us_real_gdp', 'N/A')}, Inflation (CPI) was {row.get('us_inflation_cpi', 'N/A')}, Unemployment was {row.get('us_unemployment_rate', 'N/A')}%."
+                record_id = row.get('record_id', 'N/A')
+                text = f"In {row.get('date', 'Unknown')}, US Real GDP was {row.get('us_real_gdp', 'N/A')}, Inflation (CPI) was {row.get('us_inflation_cpi', 'N/A')}, Unemployment was {row.get('us_unemployment_rate', 'N/A')}%. [Lineage Code: {record_id}]"
                 results.append({
-                    "id": f"fred-{row.get('date')}",
+                    "id": record_id if record_id != 'N/A' else f"fred-{row.get('date')}",
                     "text": text,
                     "score": 0.95
                 })
@@ -63,9 +64,10 @@ class HybridRAGService:
                 match_df = df.head(2) # Fallback to first 2 rows
                 
             for _, row in match_df.head(2).iterrows():
-                text = f"In {row.get('date', 'Unknown')}, {row.get('country.value', 'Unknown')} had an indicator value of {row.get('value', 'N/A')} for {row.get('indicator.value', 'N/A')}."
+                record_id = row.get('record_id', 'N/A')
+                text = f"In {row.get('date', 'Unknown')}, {row.get('country.value', 'Unknown')} had an indicator value of {row.get('value', 'N/A')} for {row.get('indicator.value', 'N/A')}. [Lineage Code: {record_id}]"
                 results.append({
-                    "id": f"wb-{row.get('country.id')}-{row.get('date')}",
+                    "id": record_id if record_id != 'N/A' else f"wb-{row.get('country.id')}-{row.get('date')}",
                     "text": text,
                     "score": 0.88
                 })

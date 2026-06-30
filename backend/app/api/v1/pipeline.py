@@ -49,6 +49,11 @@ async def simulate_pipeline(run_id: str, dataset_id: str):
             stage.duration_s = (stage.completed_at - stage.started_at).total_seconds()
             
             if stage_name == "bronze":
+                try:
+                    from app.services.ingestion.seed_adls import seed_adls_mock
+                    seed_adls_mock()
+                except Exception as e:
+                    logger.error(f"Failed to run seed_adls_mock: {e}")
                 stage.row_count = 20000
                 if dataset: dataset.bronze_count = 20000
             elif stage_name == "silver":

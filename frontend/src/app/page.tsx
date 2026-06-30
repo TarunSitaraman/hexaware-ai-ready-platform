@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/tooltip";
 import {
   Upload, Database, GitBranch, Shield, TrendingUp,
-  CircleDollarSign, ArrowRight, FileText, Info, CheckCircle2, XCircle,
+  CircleDollarSign, ArrowRight, FileText, Info, CheckCircle2, XCircle, Sparkles
 } from "lucide-react";
 import Link from "next/link";
 import { formatBytes, formatDuration, cn } from "@/lib/utils";
@@ -164,22 +164,31 @@ function MetricCard({ title, value, subtitle, icon: Icon, trend, tooltipContent 
   tooltipContent?: string;
 }) {
   const card = (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-        <CardTitle className="text-xs font-medium text-muted-foreground">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
+    <Card className="relative overflow-hidden bg-white/40 dark:bg-white/5 backdrop-blur-2xl border border-white/60 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.06)] gap-0 hover:bg-white/60 dark:hover:bg-white/10 transition-all">
+      {/* Specular highlight */}
+      <div className="absolute inset-0 bg-gradient-to-b from-white/60 to-transparent pointer-events-none z-0" />
+      <div className="relative z-10">
+        <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4">
+        <CardTitle className="text-xs font-semibold text-primary">{title}</CardTitle>
+        <Icon className="h-4 w-4 text-primary opacity-60" />
       </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold tracking-tight">{value}</div>
-        <div className="flex items-center gap-2 mt-1">
+      <CardContent className="pb-4">
+        <div className="text-2xl font-bold tracking-tight text-foreground">{value}</div>
+        <div className="flex items-center gap-2 mt-2">
           {subtitle && <span className="text-xs text-muted-foreground">{subtitle}</span>}
           {trend && (
-            <Badge variant="secondary" className={cn("text-[10px]", trend.value >= 0 ? "text-emerald-600" : "text-red-600")}>
+            <Badge variant="secondary" className={cn(
+              "text-[10px] font-bold border",
+              trend.value >= 0 
+                ? "bg-emerald-500/10 text-emerald-700 border-emerald-200 dark:text-emerald-400 dark:border-emerald-800" 
+                : "bg-red-500/10 text-red-700 border-red-200 dark:text-red-400 dark:border-red-800"
+            )}>
               {trend.value >= 0 ? "+" : ""}{trend.value}% {trend.label}
             </Badge>
           )}
         </div>
       </CardContent>
+      </div>
     </Card>
   );
 
@@ -338,17 +347,20 @@ export default function DashboardPage() {
   return (
     <TooltipProvider>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-            <p className="text-sm text-muted-foreground">AI-Ready Data Platform — Macroeconomic Advisory</p>
+        <div className="relative overflow-hidden rounded-2xl bg-white/40 dark:bg-black/30 backdrop-blur-2xl border border-white/60 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.08)] p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          {/* Liquid glass specular highlight overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-white/60 dark:from-white/10 to-transparent pointer-events-none z-0" />
+          
+          <div className="relative z-10 space-y-1">
+            <h1 className="text-3xl font-bold tracking-tight drop-shadow-sm">Dashboard</h1>
+            <p className="text-sm font-medium text-foreground/80 drop-shadow-sm">AI-Ready Data Platform — Macroeconomic Advisory</p>
           </div>
-          <div className="flex gap-2">
+          <div className="relative z-10 flex gap-3">
             <Link href="/upload">
-              <Button size="sm"><Upload className="mr-2 h-4 w-4" />Upload</Button>
+              <Button size="sm" className="shadow-lg"><Upload className="-ms-1 me-2 opacity-60" size={16} strokeWidth={2} aria-hidden="true" />Upload</Button>
             </Link>
             <Link href="/chat">
-              <Button variant="secondary" size="sm"><ArrowRight className="mr-2 h-4 w-4" />Ask AI</Button>
+              <Button variant="secondary" size="sm" className="shadow-lg bg-white/50 hover:bg-white/70 dark:bg-white/10 dark:hover:bg-white/20 text-foreground font-semibold"><Sparkles className="-ms-1 me-2 opacity-75" size={16} strokeWidth={2.5} aria-hidden="true" />Ask AI</Button>
             </Link>
           </div>
         </div>
@@ -377,8 +389,10 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          <Card>
-            <CardHeader className="pb-3">
+          <Card className="relative overflow-hidden bg-white/30 dark:bg-black/40 backdrop-blur-2xl border border-white/60 dark:border-white/5 shadow-[0_8px_30px_rgba(0,0,0,0.08)] gap-0">
+            <div className="absolute inset-0 bg-gradient-to-b from-white/60 to-transparent pointer-events-none z-0" />
+            <div className="relative z-10">
+              <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium">Recent Pipeline Runs</CardTitle>
             </CardHeader>
             <CardContent>
@@ -414,11 +428,14 @@ export default function DashboardPage() {
                   ))}
                 </div>
               )}
-            </CardContent>
+              </CardContent>
+            </div>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-3">
+          <Card className="relative overflow-hidden bg-white/30 dark:bg-black/40 backdrop-blur-2xl border border-white/60 dark:border-white/5 shadow-[0_8px_30px_rgba(0,0,0,0.08)] gap-0">
+            <div className="absolute inset-0 bg-gradient-to-b from-white/60 to-transparent pointer-events-none z-0" />
+            <div className="relative z-10">
+              <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium">Data Quality Overview</CardTitle>
                 {hasQualityData && (
@@ -456,7 +473,8 @@ export default function DashboardPage() {
                   ))}
                 </div>
               )}
-            </CardContent>
+              </CardContent>
+            </div>
           </Card>
         </div>
 
@@ -470,7 +488,7 @@ export default function DashboardPage() {
                 Bronze → Silver → Gold → Embeddings → AI Chat.
               </p>
               <div className="flex gap-3">
-                <Link href="/upload"><Button size="lg"><Upload className="mr-2 h-4 w-4" />Upload Dataset</Button></Link>
+                <Link href="/upload"><Button size="lg"><Upload className="-ms-1 me-2 opacity-60" size={16} strokeWidth={2} aria-hidden="true" />Upload Dataset</Button></Link>
                 <Link href="/architecture"><Button variant="outline" size="lg">View Architecture</Button></Link>
               </div>
             </CardContent>
