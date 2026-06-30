@@ -7,10 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
 
 export default function SettingsPage() {
-  const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
   const [isTesting, setIsTesting] = useState<string | null>(null);
 
@@ -19,7 +17,7 @@ export default function SettingsPage() {
     // Simulate save
     await new Promise((r) => setTimeout(r, 1000));
     setIsSaving(false);
-    toast({ title: "Settings saved", description: "Your configuration has been updated." });
+    alert("Settings saved: Your configuration has been updated.");
   };
 
   const handleTest = async (service: string) => {
@@ -27,7 +25,7 @@ export default function SettingsPage() {
     // Simulate test
     await new Promise((r) => setTimeout(r, 1500));
     setIsTesting(null);
-    toast({ title: `${service} Connection`, description: "Connection successful." });
+    alert(`${service} Connection: Connection successful.`);
   };
 
   const HealthIndicator = ({ status }: { status: "good" | "warning" | "error" }) => (

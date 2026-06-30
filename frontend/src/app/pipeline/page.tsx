@@ -1,7 +1,8 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { useSWRConfig } from "swr";
 import { usePipelineStatus, usePipelineHistory } from "@/hooks/use-api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -66,7 +67,16 @@ function PipelineContent() {
   const [runId, setRunId] = useState<string | null>(null);
   const [selectedStage, setSelectedStage] = useState<string | null>(null);
   const { data: pipeline, mutate } = usePipelineStatus(runId);
-  const { data: history } = usePipelineHistory();
+  const { data: history, mutate: mutateHistory } = usePipelineHistory();
+  const { mutate: globalMutate } = useSWRConfig();
+
+  // When pipeline completes, revalidate datasets and history caches
+  useEffect(() => {
+    if (pipeline?.status === "completed") {
+      globalMutate("/api/v1/datasets");
+      mutateHistory();
+    }
+  }, [pipeline?.status, globalMutate, mutateHistory]);
 
   const startPipeline = async () => {
     const res = await apiClient.post("/api/v1/pipeline/start", {

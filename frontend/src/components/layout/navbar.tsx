@@ -13,6 +13,8 @@ const ROUTE_LABELS: Record<string, string> = {
   bronze: "Bronze",
   silver: "Silver",
   gold: "Gold",
+  explore: "Data Explorer",
+  lineage: "Data Lineage",
   quality: "Data Quality",
   embeddings: "Embeddings",
   chat: "Chat",

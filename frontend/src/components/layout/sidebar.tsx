@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard, Upload, GitBranch, Database, Shield,
+  LayoutDashboard, Download, GitBranch, Database, Shield,
   Brain, MessageSquare, Building2, Settings, ChevronDown, Layers,
 } from "lucide-react";
 import { useState } from "react";
@@ -14,7 +14,7 @@ const navSections = [
     label: "Overview",
     items: [
       { href: "/", label: "Dashboard", icon: LayoutDashboard },
-      { href: "/upload", label: "Upload", icon: Upload },
+      { href: "/upload", label: "Ingestion", icon: Download },
       { href: "/pipeline", label: "Pipeline", icon: GitBranch },
     ],
   },
@@ -24,6 +24,8 @@ const navSections = [
       { href: "/data/bronze", label: "Bronze", icon: Database },
       { href: "/data/silver", label: "Silver", icon: Database },
       { href: "/data/gold", label: "Gold", icon: Database },
+      { href: "/data/explore", label: "Data Explorer", icon: Layers },
+      { href: "/data/lineage", label: "Data Lineage", icon: GitBranch },
       { href: "/quality", label: "Quality", icon: Shield },
     ],
   },

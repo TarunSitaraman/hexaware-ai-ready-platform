@@ -16,7 +16,7 @@ COUNTRIES = [
 SECTORS = ["overall", "manufacturing", "services", "agriculture", "technology"]
 INDICATORS = [
     "gdp_growth_pct", "inflation_pct", "unemployment_pct",
-    "interest_rate_pct", "trade_balance_bn",
+    "interest_rate_pct", "trade_balance_bn", "gdp_bn"
 ]
 
 BASE_VALUES = {
@@ -146,48 +146,23 @@ def main():
                         elif indicator == "unemployment_pct":
                             val = base["unemployment_pct"] - trend * 0.3 + noise * 0.5
                         elif indicator == "interest_rate_pct":
-                            val = base["interest_rate_pct"] + (val_cpi := base["inflation_pct"] + noise) * 0.3 + noise * 0.3
-                        else:  # trade_balance_bn
+                            val = base["interest_rate_pct"] + (base["inflation_pct"] + noise) * 0.3 + noise * 0.3
+                        elif indicator == "trade_balance_bn":
                             val = base["trade_balance_bn"] + noise * 5 + seasonal * 2
+                        elif indicator == "gdp_bn":
+                            val = base["gdp_bn"] * (1 + trend) + random.gauss(0, 50)
+                        else: # population_m
+                            val = base["population_m"] * (1 + (year - 2005) * 0.005) + random.gauss(0, 0.5)
 
                         val = round(val, 2)
+                        ind_val = val
 
-                        # Different indicator values per indicator row
-                        if indicator == "gdp_growth_pct":
-                            ind_val = val
-                            other_gdp = val
-                            other_inf = base["inflation_pct"] + random.gauss(0, 0.3)
-                            other_unemp = base["unemployment_pct"] + random.gauss(0, 0.2)
-                            other_ir = base["interest_rate_pct"] + random.gauss(0, 0.2)
-                            other_tb = base["trade_balance_bn"] + random.gauss(0, 5)
-                        elif indicator == "inflation_pct":
-                            ind_val = val
-                            other_gdp = base["gdp_growth_pct"] + random.gauss(0, 0.3)
-                            other_inf = val
-                            other_unemp = base["unemployment_pct"] + random.gauss(0, 0.2)
-                            other_ir = base["interest_rate_pct"] + random.gauss(0, 0.2)
-                            other_tb = base["trade_balance_bn"] + random.gauss(0, 5)
-                        elif indicator == "unemployment_pct":
-                            ind_val = val
-                            other_gdp = base["gdp_growth_pct"] + random.gauss(0, 0.3)
-                            other_inf = base["inflation_pct"] + random.gauss(0, 0.3)
-                            other_unemp = val
-                            other_ir = base["interest_rate_pct"] + random.gauss(0, 2)
-                            other_tb = base["trade_balance_bn"] + random.gauss(0, 5)
-                        elif indicator == "interest_rate_pct":
-                            ind_val = val
-                            other_gdp = base["gdp_growth_pct"] + random.gauss(0, 0.3)
-                            other_inf = base["inflation_pct"] + random.gauss(0, 0.3)
-                            other_unemp = base["unemployment_pct"] + random.gauss(0, 0.2)
-                            other_ir = val
-                            other_tb = base["trade_balance_bn"] + random.gauss(0, 5)
-                        else:
-                            ind_val = val
-                            other_gdp = base["gdp_growth_pct"] + random.gauss(0, 0.3)
-                            other_inf = base["inflation_pct"] + random.gauss(0, 0.3)
-                            other_unemp = base["unemployment_pct"] + random.gauss(0, 0.2)
-                            other_ir = base["interest_rate_pct"] + random.gauss(0, 0.2)
-                            other_tb = val
+                        # For narrative context, we need rough other values if they aren't the primary indicator
+                        other_gdp = val if indicator == "gdp_growth_pct" else base["gdp_growth_pct"] + random.gauss(0, 0.3)
+                        other_inf = val if indicator == "inflation_pct" else base["inflation_pct"] + random.gauss(0, 0.3)
+                        other_unemp = val if indicator == "unemployment_pct" else base["unemployment_pct"] + random.gauss(0, 0.2)
+                        other_ir = val if indicator == "interest_rate_pct" else base["interest_rate_pct"] + random.gauss(0, 0.2)
+                        other_tb = val if indicator == "trade_balance_bn" else base["trade_balance_bn"] + random.gauss(0, 5)
 
                         narrative = generate_narrative(
                             country, year, quarter,
@@ -197,8 +172,10 @@ def main():
 
                         gdp_bn_val = round(base["gdp_bn"] * (1 + (year - 2005) * 0.025) + random.gauss(0, 50), 1)
                         pop_val = round(base["population_m"] * (1 + (year - 2005) * 0.005) + random.gauss(0, 0.5), 1)
+                        record_id = str(uuid.uuid4())
 
                         rows.append({
+                            "record_id": record_id,
                             "dataset_id": dataset_id,
                             "country": country,
                             "year": year,
@@ -220,7 +197,7 @@ def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     output_path = os.path.join(script_dir, "macroeconomic_indicators.csv")
     fieldnames = [
-        "dataset_id", "country", "year", "quarter",
+        "record_id", "dataset_id", "country", "year", "quarter",
         "gdp_growth_pct", "inflation_pct", "unemployment_pct",
         "interest_rate_pct", "trade_balance_bn", "gdp_bn", "population_m",
         "sector", "indicator_name", "indicator_value", "narrative_text",

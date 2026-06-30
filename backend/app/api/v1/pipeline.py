@@ -67,6 +67,9 @@ async def simulate_pipeline(run_id: str, dataset_id: str):
         run.status = "completed"
         run.progress_pct = 100
         run.completed_at = datetime.now()
+        if dataset:
+            dataset.status = "ready"
+            dataset.last_pipeline_run = run_id
         db.commit()
         await broadcast_status(run_id)
     finally:
