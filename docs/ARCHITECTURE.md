@@ -46,43 +46,46 @@ The AI-Ready Data Platform is an enterprise macroeconomic advisory system that t
 │   ┌──────────────┐     ┌───────────────────────────────────────┐       │
 │   │  ADLS Gen2   │     │     Azure Databricks (Premium)       │       │
 │   │              │     │                                       │       │
-│   │  raw-zone    │────▶│  01 Bronze Ingestion                 │       │
+│   │  raw-zone    │────▶│  Delta Live Tables (DLT) Pipeline    │       │
 │   │  landing-zone│     │     ▼                                │       │
-│   │  databricks  │     │  02 Silver Cleaning                  │       │
+│   │  databricks  │     │  01 Bronze Ingestion                 │       │
 │   │              │     │     ▼                                │       │
-│   └──────────────┘     │  03 Gold Transformation              │       │
+│   └──────────────┘     │  02 Silver Cleaning & DLT Quality    │       │
 │                         │     ▼                                │       │
-│                         │  04 Quality Validation               │       │
+│                         │  03 Gold Transformation              │       │
 │                         │     ▼                                │       │
-│                         │  05 Feature Engineering              │       │
-│                         │     ▼                                │       │
-│                         │  06 Embedding Generation ───┐       │       │
-│                         │     ▼                        │       │       │
-│                         │  07 Vector Index Sync        │       │       │
-│                         │                              │       │       │
-│                         │  Unity Catalog               │       │       │
-│                         │  • bronze.macro_raw          │       │       │
-│                         │  • silver.macro_clean        │       │       │
-│                         │  • gold.macro_analytics      │       │       │
-│                         │  • features.macro_features   │       │       │
-│                         │  • embeddings.macro_chunks   │       │       │
-│                         │  • audit.quality_scores      │       │       │
-│                         └────────────────┬─────────────┘       │       │
-│                                          │                             │
-│                                          ▼                             │
+│                         │  04 Feature Engineering ──────────┐  │       │
+│                         │     ▼                             │  │       │
+│                         │  05 Embedding Generation (ada-002)│  │       │
+│                         │                                   │  │       │
+│                         │  Unity Catalog                    │  │       │
+│                         │  • bronze.macro_raw               │  │       │
+│                         │  • silver.macro_clean             │  │       │
+│                         │  • gold.macro_analytics           │  │       │
+│                         │  • audit.quality_scores           │  │       │
+│                         │                                   │  │       │
+│                         │  Databricks Feature Store ◀───────┘  │       │
+│                         │  • features.macro_features           │       │
+│                         │                                      │       │
+│                         │  Databricks Vector Search            │       │
+│                         │  • embeddings.macro_chunks           │       │
+│                         │  • Auto-sync with Delta Tables       │       │
+│                         └────────────────┬─────────────┬───────┘       │
+│                                          │             │               │
+│                                          ▼             ▼               │
 │   ┌──────────────────┐     ┌─────────────────────────────┐            │
-│   │ Azure OpenAI     │     │ Azure AI Search              │            │
+│   │ Azure OpenAI     │     │ Azure Key Vault              │            │
 │   │                  │     │                              │            │
-│   │ GPT-4o           │◀────│ macro-knowledge-index        │            │
-│   │ ada-002          │     │ • HNSW vector (1536 dim)     │            │
-│   │                  │     │ • BM25 full-text             │            │
-│   │ Chat Completions │     │ • Semantic reranking         │            │
-│   │ Embeddings       │     │ • Hybrid search              │            │
+│   │ GPT-4o           │     │ • Secrets management         │            │
+│   │ ada-002          │     │ • Credentials                │            │
+│   │                  │     │                              │            │
+│   │ Chat Completions │     │                              │            │
+│   │ Embeddings       │     │                              │            │
 │   └──────────────────┘     └─────────────────────────────┘            │
 │                                                                         │
 │   ┌──────────────┐   ┌──────────────┐   ┌──────────────┐              │
-│   │  Key Vault   │   │ App Insights │   │ Data Factory │              │
-│   │  Secrets     │   │ Monitoring   │   │ Orchestration│              │
+│   │ App Insights │   │ Data Factory │   │              │              │
+│   │ Monitoring   │   │ Orchestration│   │              │              │
 │   └──────────────┘   └──────────────┘   └──────────────┘              │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
@@ -118,8 +121,8 @@ The AI-Ready Data Platform is an enterprise macroeconomic advisory system that t
 | Logging | Loguru | Structured logging |
 | Azure Storage | azure-storage-blob | ADLS Gen2 operations |
 | Azure Auth | azure-identity | Managed identity / credential |
-| Databricks | databricks-sdk | Job submission, status |
-| Search | azure-search-documents | Hybrid vector + BM25 search |
+| Databricks | databricks-sdk | DLT Job submission, status |
+| Search | databricks-sdk | Databricks Vector Search |
 | AI | openai (Azure) | Chat completions, embeddings |
 
 ### Azure Infrastructure (Terraform)
@@ -128,8 +131,7 @@ The AI-Ready Data Platform is an enterprise macroeconomic advisory system that t
 |----------|-----|---------|
 | Resource Group | — | Container for all resources |
 | Storage Account | Standard_LRS, HNS | ADLS Gen2 with 3 containers |
-| Databricks Workspace | Premium | Notebook execution, Unity Catalog |
-| AI Search | Standard S1 | Vector index, hybrid search |
+| Databricks Workspace | Premium | DLT, Vector Search, Feature Store, Unity Catalog |
 | OpenAI (Cognitive) | S0 | GPT-4o, text-embedding-ada-002 |
 | Key Vault | Standard | Secrets management |
 | Log Analytics | Per-GB | Centralized logging |
@@ -145,27 +147,22 @@ The AI-Ready Data Platform is an enterprise macroeconomic advisory system that t
 User → CSV File → Frontend (Preview) → Backend (Parse) → ADLS Gen2 (raw-zone)
 ```
 
-### 2. Pipeline Flow
+### 2. Pipeline Flow (Delta Live Tables)
 ```
-ADLS raw-zone → Bronze (Raw Delta) → Silver (Clean) → Gold (Features + Chunks)
-                                                            ↓
-                Quality Validation ←──────────────── All Layers
-                                                            ↓
-                                            Feature Engineering
-                                                            ↓
-                                            Embedding Generation
-                                                            ↓
-                                            Vector Index Sync → AI Search
+ADLS raw-zone → Bronze (Raw Delta) → Silver (Clean + DLT Expectations) → Gold (Features + Chunks)
+                                                                           ↓
+                                                  Feature Store ← Feature Engineering
+                                                                           ↓
+                                             Databricks Vector Search ← Embedding Gen
 ```
 
 ### 3. Chat/RAG Flow
 ```
 User Question → Backend
                   ↓
-          Hybrid Search (AI Search)
-          • BM25 keyword match
-          • Vector similarity (1536 dims)
-          • Semantic reranking
+          Databricks Vector Search
+          • Hybrid Search (Vector + Keyword)
+          • Automatic Delta sync
                   ↓
           Top-K Context Chunks (k=5)
                   ↓
@@ -174,7 +171,7 @@ User Question → Backend
           • Context injection
           • User question
                   ↓
-          GPT-4o Completion
+          GPT-4o Completion (Azure OpenAI)
                   ↓
           Answer + Citations → Frontend
 ```
