@@ -3,52 +3,50 @@ This repository contains a complete end-to-end AI-Ready Data implementation usin
 
 ## Architecture Overview
 The project follows Microsoft's AI-ready data architecture:
-1. **Data Sources**: Simulated CSV files representing retail sales.
-2. **Ingestion**: Loading data into Databricks.
-3. **Bronze Layer**: Raw Delta tables, append-only, preserving history.
-4. **Silver Layer**: Cleaned, filtered, and deduplicated Delta tables with MERGE upserts.
-5. **Gold Layer**: Business-level aggregations and KPIs ready for consumption.
-6. **Data Quality**: Assertions and validation checks.
-7. **Feature Engineering**: Creating ML features and storing them for model training.
-8. **Machine Learning**: Training a predictive model (Random Forest) and tracking with MLflow.
-9. **Reporting**: SQL queries to power dashboards.
+1. **Infrastructure as Code**: Automated provisioning of Azure and Databricks resources using Terraform.
+2. **Data Sources**: Simulated CSV files representing retail sales.
+3. **Ingestion**: Loading data into Databricks.
+4. **Bronze Layer**: Raw Delta tables, append-only, preserving history.
+5. **Silver Layer**: Cleaned, filtered, and deduplicated Delta tables with MERGE upserts.
+6. **Gold Layer**: Business-level aggregations and KPIs ready for consumption.
+7. **Data Quality**: Assertions and validation checks.
+8. **Feature Engineering**: Creating ML features and storing them for model training.
+9. **Machine Learning**: Training a predictive model (Random Forest) and tracking with MLflow.
+10. **Reporting**: SQL queries to power dashboards.
+11. **CI/CD Pipeline**: GitHub Actions deploy Databricks Asset Bundles and Terraform.
 
 ## Project Structure
-```
+```text
 hexaware-ai-ready-platform/
+├── .github/workflows/          # CI/CD pipelines (Terraform & DABs)
+├── databricks.yml              # Databricks Asset Bundle definition
+├── infrastructure/terraform/   # Terraform IaC modules
 ├── data/                       # Sample datasets (synthetic retail sales)
-│   └── sample_retail_sales.csv
 ├── notebooks/                  # Databricks Notebooks (Python)
-│   ├── 01_Data_Ingestion.py
-│   ├── 02_Bronze_Layer.py
-│   ├── 03_Silver_Layer.py
-│   ├── 04_Gold_Layer.py
-│   ├── 05_Data_Quality_Validation.py
-│   ├── 06_Feature_Engineering.py
-│   ├── 07_Machine_Learning.py
-│   └── 08_Reporting.py
 ├── docs/                       # Documentation, architecture diagrams, demo scripts
-│   ├── architecture.md
-│   ├── demo_script.md
-│   └── speaker_notes.md
 └── README.md
 ```
 
-## Setup Instructions
+## Deployment & Setup
 
-### Prerequisites
-1. An Azure Databricks workspace.
-2. Unity Catalog enabled (recommended, though `hive_metastore` is used as a fallback).
+### 1. Infrastructure Deployment (Terraform)
+Navigate to `infrastructure/terraform/` and apply the infrastructure. This creates the Resource Group, Azure Data Lake Storage Gen2, and Databricks Workspace.
+```bash
+cd infrastructure/terraform
+terraform init
+terraform apply
+```
 
-### Steps
-1. **Clone the Repository**:
-   Import this repository into Databricks Repos.
-2. **Upload Data**:
-   Upload `data/sample_retail_sales.csv` to DBFS or a Unity Catalog Volume. Update the `raw_file_path` in `01_Data_Ingestion.py` accordingly.
-3. **Run Notebooks**:
-   Run the notebooks sequentially from `01` to `08`. Each notebook relies on the tables created in the previous steps.
-4. **Explore the Data**:
-   Navigate to the Data Explorer (Catalog) in Databricks to view the schemas and tables created under `hive_metastore.retail_demo`.
+### 2. CI/CD and MLOps (Databricks Asset Bundles)
+This project uses **Databricks Asset Bundles (DABs)** to define the Data Engineering pipeline as code.
+You can deploy the pipeline using the Databricks CLI:
+```bash
+databricks bundle deploy -t dev
+```
+Alternatively, **GitHub Actions** are configured in `.github/workflows/deploy.yml` to automatically deploy the bundle upon merging to `main`.
+
+### 3. Running the Pipeline
+Once deployed, the `Medallion Data Pipeline` job will be available in your Databricks Workspace. It automatically orchestrates the execution of Notebooks 01 through 08 with all necessary task dependencies.
 
 ## Demo
-Please refer to `docs/demo_script.md` for a complete 15-minute presentation guide.
+Please refer to `docs/demo_script.md` for a complete 15-minute presentation guide, highlighting both the data engineering and infrastructural components of the platform.
