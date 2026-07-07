@@ -14,7 +14,7 @@ node_modules/
 out/
 
 # Data
-data/
+# (data/ removed to allow tracking synthetic datasets)
 *.db
 
 # Logs
