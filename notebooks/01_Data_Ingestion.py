@@ -54,5 +54,5 @@ display(ingested_df)
 # MAGIC In a real streaming scenario, this would be an Auto Loader stream writing directly to Bronze.
 
 # COMMAND ----------
-ingested_df.createOrReplaceTempView("raw_retail_sales")
-print("Ingestion complete. Data is ready for Bronze layer.")
+ingested_df.write.format("delta").mode("overwrite").saveAsTable(f"{catalog_name}.{schema_name}.raw_retail_sales")
+print("Ingestion complete. Data is saved to Unity Catalog and ready for Bronze layer.")

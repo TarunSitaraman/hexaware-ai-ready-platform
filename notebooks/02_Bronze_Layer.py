@@ -13,7 +13,7 @@ schema_name = "retail_demo"
 # MAGIC Retrieve the data prepared during ingestion.
 
 # COMMAND ----------
-raw_df = spark.table("raw_retail_sales")
+raw_df = spark.table(f"{catalog_name}.{schema_name}.raw_retail_sales")
 
 # COMMAND ----------
 # MAGIC %md

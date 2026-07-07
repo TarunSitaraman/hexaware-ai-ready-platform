@@ -10,10 +10,13 @@ import pyspark.sql.functions as F
 
 # COMMAND ----------
 
+catalog_name = spark.sql("SELECT current_catalog()").collect()[0][0]
+schema_name = "retail_demo"
+
 # Assume Silver layer contains the clean transactional and customer data
-silver_sales_df = spark.table(f"{catalog_name}.retail_demo.silver_sales")
+silver_sales_df = spark.table(f"{catalog_name}.{schema_name}.silver_sales")
 # (Simulating customer data if it existed)
-# customer_df = spark.table(f"{catalog_name}.retail_demo.customers")
+# customer_df = spark.table(f"{catalog_name}.{schema_name}.customers")
 
 # COMMAND ----------
 
@@ -62,7 +65,7 @@ product_region_edges = silver_sales_df.select(
 
 # COMMAND ----------
 
-# product_nodes.write.format("delta").mode("overwrite").saveAsTable(f"{catalog_name}.retail_demo.graph_nodes")
-# product_region_edges.write.format("delta").mode("overwrite").saveAsTable(f"{catalog_name}.retail_demo.graph_edges")
+# product_nodes.write.format("delta").mode("overwrite").saveAsTable(f"{catalog_name}.{schema_name}.graph_nodes")
+# product_region_edges.write.format("delta").mode("overwrite").saveAsTable(f"{catalog_name}.{schema_name}.graph_edges")
 
 print("✅ Knowledge Graph extraction complete. Ready for GraphRAG context injection.")
