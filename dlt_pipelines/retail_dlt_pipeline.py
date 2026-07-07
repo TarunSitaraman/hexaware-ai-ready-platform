@@ -49,7 +49,7 @@ def gold_daily_sales():
     dlt.read("silver_sales")
       .groupBy("date", "product_category", "region")
       .agg(
-          sum("total_revenue").alias("total_revenue"),
+          sum("amount").alias("total_revenue"),
           count("transaction_id").alias("transaction_count")
       )
       .withColumn("total_revenue", round("total_revenue", 2))
