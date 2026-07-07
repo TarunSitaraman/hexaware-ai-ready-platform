@@ -13,9 +13,6 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
 import numpy as np
 
-# Fix for Serverless MLflow bug: Manually set the registry URI config
-spark.conf.set("spark.mlflow.modelRegistryUri", "databricks-uc")
-
 catalog_name = spark.sql("SELECT current_catalog()").collect()[0][0] 
 schema_name = "retail_demo"
 feature_table = f"{catalog_name}.{schema_name}.customer_features"
@@ -56,15 +53,14 @@ with mlflow.start_run(run_name="CustomerSpendPredictor") as run:
     rmse = np.sqrt(mean_squared_error(y_test, predictions))
     print(f"Root Mean Squared Error (RMSE) on test data = {rmse:.2f}")
     
-    # MLflow: Manually log parameters, metrics, and model to avoid Serverless config bugs
+    # MLflow: Manually log parameters and metrics.
+    # Note: We skip log_model() here because Databricks Free Serverless restricts the 
+    # underlying spark.mlflow.modelRegistryUri configuration.
     mlflow.log_param("n_estimators", 10)
     mlflow.log_param("random_state", 42)
     mlflow.log_metric("rmse", rmse)
     
-    mlflow.sklearn.log_model(rf, "model")
-    
-    model_uri = f"runs:/{run.info.run_id}/model"
-    print(f"Model logged to MLflow with URI: {model_uri}")
+    print(f"Metrics and parameters successfully logged to MLflow!")
 
 # COMMAND ----------
 # MAGIC %md
