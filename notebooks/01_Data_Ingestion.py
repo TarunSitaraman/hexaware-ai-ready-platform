@@ -41,10 +41,10 @@ display(raw_df)
 # MAGIC Add ingestion timestamp and source file name.
 
 # COMMAND ----------
-from pyspark.sql.functions import current_timestamp, input_file_name
+from pyspark.sql.functions import current_timestamp, col
 
 ingested_df = raw_df.withColumn("ingested_at", current_timestamp()) \
-                    .withColumn("source_file", input_file_name())
+                    .withColumn("source_file", col("_metadata.file_path"))
 
 display(ingested_df)
 
