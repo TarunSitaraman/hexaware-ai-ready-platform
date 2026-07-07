@@ -40,6 +40,10 @@ export default function RootLayout({
                 <Database size={20} />
                 Data Pipelines (DLT)
               </Link>
+              <Link href="/ontology" className="nav-link">
+                <BrainCircuit size={20} />
+                Semantic Ontology
+              </Link>
               <Link href="/copilot" className="nav-link">
                 <Bot size={20} />
                 Retail Copilot

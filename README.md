@@ -11,7 +11,8 @@ The project focuses exclusively on Databricks architecture and its presentation 
 6. **Real-time Model Serving**: Deploying serverless endpoints for real-time REST API inference.
 7. **Generative AI & RAG**: Integrating Databricks Foundation Models (Llama-3/DBRX) for a Text-to-SQL Retail Copilot.
 8. **Advanced Governance**: Row-Level Security (RLS) and Dynamic Data Masking via Unity Catalog.
-9. **Control Center UI**: A Next.js web application providing a premium glassmorphic dashboard to monitor pipelines and endpoints.
+9. **Ontology & Semantic Context**: Leveraging Unity Catalog metadata tagging, EKG Graph extraction, and AI/BI Genie semantic modeling to ground LLMs in business reality.
+10. **Control Center UI**: A Next.js web application providing a premium glassmorphic dashboard to monitor pipelines and endpoints.
 
 ## Project Structure
 ```text

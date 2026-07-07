@@ -73,3 +73,24 @@ export async function getDLTPipelineStatus() {
     ]
   };
 }
+
+export async function getOntologyGraph() {
+  // Simulates fetching Graph nodes from Databricks Vector Search / Unity Catalog tags
+  await new Promise(resolve => setTimeout(resolve, 600));
+  
+  return {
+    nodes: [
+      { id: "gold_daily_sales", label: "Gold Daily Sales", type: "table", tags: ["Domain: Sales", "Sensitivity: Internal"] },
+      { id: "product_category", label: "Category", type: "dimension", tags: ["Dimension"] },
+      { id: "region", label: "Region", type: "dimension", tags: ["Geography"] },
+      { id: "total_revenue", label: "Total Revenue", type: "metric", tags: ["Financial"] },
+      { id: "customer_features", label: "Customer Profile", type: "table", tags: ["Domain: ML"] }
+    ],
+    edges: [
+      { source: "gold_daily_sales", target: "product_category", label: "CONTAINS" },
+      { source: "gold_daily_sales", target: "region", label: "CONTAINS" },
+      { source: "gold_daily_sales", target: "total_revenue", label: "MEASURES" },
+      { source: "region", target: "customer_features", label: "INFLUENCES" }
+    ]
+  };
+}
