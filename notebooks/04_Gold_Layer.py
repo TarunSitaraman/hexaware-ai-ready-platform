@@ -4,7 +4,7 @@
 # MAGIC The Gold layer contains highly refined and aggregated data ready for BI dashboards and machine learning.
 
 # COMMAND ----------
-from pyspark.sql.functions import sum, count, round, expr
+from pyspark.sql.functions import sum, count, round
 
 catalog_name = spark.sql("SELECT current_catalog()").collect()[0][0] 
 schema_name = "retail_demo"
@@ -23,13 +23,10 @@ silver_df = spark.table(silver_table)
 # MAGIC E.g., Daily Sales by Product Category.
 
 # COMMAND ----------
-# Calculate total sales amount including discount
-gold_df = silver_df.withColumn("total_sales_amount", expr("(price * quantity) * (1 - discount)"))
 
-daily_sales_df = (gold_df.groupBy("transaction_date", "product_category")
+daily_sales_df = (silver_df.groupBy("date", "product_category", "region")
   .agg(
-      sum("total_sales_amount").alias("total_revenue"),
-      sum("quantity").alias("total_items_sold"),
+      sum("total_revenue").alias("total_revenue"),
       count("transaction_id").alias("transaction_count")
   )
   .withColumn("total_revenue", round("total_revenue", 2))
@@ -52,4 +49,4 @@ gold_table = f"{catalog_name}.{schema_name}.gold_daily_sales"
 print(f"Gold table {gold_table} successfully created/updated.")
 
 # COMMAND ----------
-display(spark.table(gold_table).orderBy("transaction_date", "product_category"))
+display(spark.table(gold_table).orderBy("date", "product_category"))

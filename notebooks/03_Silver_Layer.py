@@ -4,7 +4,7 @@
 # MAGIC The Silver layer represents filtered, cleaned, and augmented data. We handle nulls, deduplicate records, and cast data types.
 
 # COMMAND ----------
-from pyspark.sql.functions import col, when, to_date
+from pyspark.sql.functions import col, to_date
 
 catalog_name = spark.sql("SELECT current_catalog()").collect()[0][0] 
 schema_name = "retail_demo"
@@ -22,16 +22,14 @@ bronze_df = spark.table(bronze_table)
 # MAGIC %md
 # MAGIC ## 2. Clean and Transform
 # MAGIC - Deduplicate by transaction_id
-# MAGIC - Handle null discounts (set to 0.0)
-# MAGIC - Cast transaction_date to a proper Date type
-# MAGIC - Filter out invalid records (e.g., negative prices or quantities)
+# MAGIC - Cast date to a proper Date type
+# MAGIC - Filter out invalid records (e.g., negative amounts)
 
 # COMMAND ----------
 silver_df = (bronze_df
              .dropDuplicates(["transaction_id"])
-             .withColumn("discount", when(col("discount").isNull(), 0.0).otherwise(col("discount")))
-             .withColumn("transaction_date", to_date(col("transaction_date")))
-             .filter((col("price") > 0) & (col("quantity") > 0))
+             .withColumn("date", to_date(col("date")))
+             .filter(col("amount") > 0)
             )
 
 # COMMAND ----------
@@ -60,16 +58,6 @@ else:
       .execute()
     )
     print(f"Merged data into {silver_table}")
-
-# COMMAND ----------
-# MAGIC %md
-# MAGIC ## 4. Schema Evolution Example
-# MAGIC Demonstrating adding a new column dynamically.
-
-# COMMAND ----------
-# MAGIC %sql
-# MAGIC -- We can alter the table to add new columns if needed, or rely on mergeSchema
-# MAGIC -- ALTER TABLE hive_metastore.retail_demo.silver_sales ADD COLUMN total_amount DOUBLE;
 
 # COMMAND ----------
 display(spark.table(silver_table).limit(10))

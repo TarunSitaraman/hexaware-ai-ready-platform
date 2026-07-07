@@ -17,13 +17,12 @@ silver_table = f"{catalog_name}.{schema_name}.silver_sales"
 
 # COMMAND ----------
 sales_df = spark.table(silver_table)
-sales_df = sales_df.withColumn("amount", expr("(price * quantity) * (1 - discount)"))
 
 customer_features_df = (sales_df.groupBy("customer_id")
   .agg(
-      sum("amount").alias("total_spend"),
+      sum("total_revenue").alias("total_spend"),
       count("transaction_id").alias("purchase_count"),
-      max("transaction_date").alias("last_purchase_date")
+      max("date").alias("last_purchase_date")
   )
   .withColumn("days_since_last_purchase", datediff(current_date(), "last_purchase_date"))
 )
