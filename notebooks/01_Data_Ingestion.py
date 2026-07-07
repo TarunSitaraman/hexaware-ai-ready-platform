@@ -13,8 +13,9 @@
 catalog_name = "hive_metastore" # Or use your specific Unity Catalog name like 'main'
 schema_name = "retail_demo"
 volume_path = "/Volumes/main/retail_demo/raw_data" # Simulated path
-raw_file_path = "file:/workspace/data/sample_retail_sales.csv" # Using local file for demo purposes
-
+import os
+repo_root = os.path.dirname(os.getcwd())
+raw_file_path = f"file:{repo_root}/data/sample_retail_sales.csv"
 spark.sql(f"CREATE DATABASE IF NOT EXISTS {catalog_name}.{schema_name}")
 spark.sql(f"USE CATALOG {catalog_name}")
 spark.sql(f"USE SCHEMA {schema_name}")
