@@ -13,6 +13,9 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
 import numpy as np
 
+# Fix for Serverless MLflow bug: Manually set the registry URI config
+spark.conf.set("spark.mlflow.modelRegistryUri", "databricks-uc")
+
 catalog_name = spark.sql("SELECT current_catalog()").collect()[0][0] 
 schema_name = "retail_demo"
 feature_table = f"{catalog_name}.{schema_name}.customer_features"
