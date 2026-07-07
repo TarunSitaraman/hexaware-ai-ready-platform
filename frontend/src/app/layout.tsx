@@ -32,15 +32,15 @@ export default function RootLayout({
             </div>
             
             <nav className="nav-links">
-              <Link href="/" className="nav-link active">
+              <Link href="/" className="nav-link">
                 <LayoutDashboard size={20} />
                 Dashboard
               </Link>
-              <Link href="#" className="nav-link">
+              <Link href="/pipelines" className="nav-link">
                 <Database size={20} />
                 Data Pipelines (DLT)
               </Link>
-              <Link href="#" className="nav-link">
+              <Link href="/copilot" className="nav-link">
                 <Bot size={20} />
                 Retail Copilot
               </Link>

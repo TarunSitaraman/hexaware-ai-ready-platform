@@ -1,4 +1,4 @@
-import { Activity, Database, Zap, Cpu } from "lucide-react";
+import { Activity, Database, Cpu } from "lucide-react";
 
 export default function Home() {
   return (
