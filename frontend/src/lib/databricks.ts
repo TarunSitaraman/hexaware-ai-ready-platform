@@ -5,8 +5,38 @@
  * to make fetch() calls to the actual Databricks workspace.
  */
 
+import { DBSQLClient } from '@databricks/sql';
+
 const DBX_HOST = process.env.DATABRICKS_HOST;
 const DBX_TOKEN = process.env.DATABRICKS_TOKEN;
+const DBX_SQL_PATH = process.env.DATABRICKS_SQL_HTTP_PATH;
+
+/**
+ * Helper function to execute SQL queries on Databricks Serverless
+ */
+export async function executeSQL(query: string) {
+  if (DBX_HOST && DBX_TOKEN && DBX_SQL_PATH) {
+    const client = new DBSQLClient();
+    try {
+      await client.connect({
+        host: DBX_HOST,
+        path: DBX_SQL_PATH,
+        token: DBX_TOKEN
+      });
+      const session = await client.openSession();
+      const queryOperation = await session.executeStatement(query, { runAsync: true });
+      const result = await queryOperation.fetchAll();
+      await session.close();
+      return result;
+    } catch (error) {
+      console.error("Databricks SQL Error:", error);
+      throw error;
+    } finally {
+      await client.close();
+    }
+  }
+  return null; // Fallback handled by individual API routes
+}
 
 export async function queryDatabricksModelServing(prompt: string) {
   if (DBX_HOST && DBX_TOKEN) {

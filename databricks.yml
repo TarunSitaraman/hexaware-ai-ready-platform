@@ -1,0 +1,77 @@
+bundle:
+  name: hexaware-ai-ready-platform
+
+workspace:
+  host: ${workspace.host}
+
+resources:
+  jobs:
+    retail_daily_pipeline:
+      name: "Retail Daily ETL & ML Pipeline"
+      schedule:
+        quartz_cron_expression: "0 0 2 * * ?" # Run daily at 2:00 AM
+        timezone_id: "UTC"
+      tasks:
+        - task_key: "data_ingestion"
+          notebook_task:
+            notebook_path: "notebooks/01_Data_Ingestion.py"
+          job_cluster_key: "serverless_cluster"
+
+        - task_key: "bronze_layer"
+          depends_on:
+            - task_key: "data_ingestion"
+          notebook_task:
+            notebook_path: "notebooks/02_Bronze_Layer.py"
+          job_cluster_key: "serverless_cluster"
+
+        - task_key: "silver_layer"
+          depends_on:
+            - task_key: "bronze_layer"
+          notebook_task:
+            notebook_path: "notebooks/03_Silver_Layer.py"
+          job_cluster_key: "serverless_cluster"
+
+        - task_key: "gold_layer"
+          depends_on:
+            - task_key: "silver_layer"
+          notebook_task:
+            notebook_path: "notebooks/04_Gold_Layer.py"
+          job_cluster_key: "serverless_cluster"
+
+        - task_key: "semantic_layer_tagging"
+          depends_on:
+            - task_key: "gold_layer"
+          notebook_task:
+            notebook_path: "notebooks/12_Unity_Catalog_Semantic_Layer.py"
+          job_cluster_key: "serverless_cluster"
+
+        - task_key: "feature_engineering"
+          depends_on:
+            - task_key: "silver_layer"
+          notebook_task:
+            notebook_path: "notebooks/06_Feature_Engineering.py"
+          job_cluster_key: "serverless_cluster"
+          
+        - task_key: "model_training"
+          depends_on:
+            - task_key: "feature_engineering"
+          notebook_task:
+            notebook_path: "notebooks/07_Machine_Learning.py"
+          job_cluster_key: "serverless_cluster"
+
+      job_clusters:
+        - job_cluster_key: "serverless_cluster"
+          new_cluster:
+            spark_version: "14.3.x-scala2.12"
+            node_type_id: "Standard_DS3_v2" # Note: Can be overridden by serverless compute configs
+            num_workers: 1
+
+  pipelines:
+    retail_dlt_pipeline:
+      name: "Retail DLT Pipeline (Data Quality)"
+      libraries:
+        - notebook:
+            path: "dlt_pipelines/retail_dlt_pipeline.py"
+      target: "retail_demo_dlt"
+      serverless: true
+      development: true
