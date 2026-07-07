@@ -41,9 +41,6 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 # MAGIC ## 3. Train Model and Log with MLflow
 
 # COMMAND ----------
-# Enable autologging for scikit-learn
-mlflow.sklearn.autolog()
-
 with mlflow.start_run(run_name="CustomerSpendPredictor") as run:
     # Train the Random Forest Model
     rf = RandomForestRegressor(n_estimators=10, random_state=42)
@@ -56,7 +53,13 @@ with mlflow.start_run(run_name="CustomerSpendPredictor") as run:
     rmse = np.sqrt(mean_squared_error(y_test, predictions))
     print(f"Root Mean Squared Error (RMSE) on test data = {rmse:.2f}")
     
-    # MLflow automatically logs the model, parameters, and metrics
+    # MLflow: Manually log parameters, metrics, and model to avoid Serverless config bugs
+    mlflow.log_param("n_estimators", 10)
+    mlflow.log_param("random_state", 42)
+    mlflow.log_metric("rmse", rmse)
+    
+    mlflow.sklearn.log_model(rf, "model")
+    
     model_uri = f"runs:/{run.info.run_id}/model"
     print(f"Model logged to MLflow with URI: {model_uri}")
 
