@@ -2,17 +2,41 @@
 This repository contains a complete end-to-end AI-Ready Data implementation using Azure Databricks. It demonstrates the journey of raw data through the Medallion Architecture (Bronze, Silver, Gold), governed by Unity Catalog, culminating in Machine Learning, and presented through a modern React frontend.
 
 ## Architecture Overview
+
+```mermaid
+graph TD
+    %% Styling
+    classDef databricks fill:#ff3621,color:#fff,stroke:#fff,stroke-width:2px;
+    classDef layer fill:#f4f4f4,stroke:#333,stroke-width:2px;
+    classDef react fill:#61dafb,color:#000,stroke:#fff,stroke-width:2px;
+
+    %% Components
+    A[(Raw Retail CSV)] -->|Ingestion| B(Bronze Layer<br>Raw Telemetry)
+    B -->|DLT Quality Rules| C(Silver Layer<br>Cleaned Entities)
+    C -->|Aggregation| D(Gold Layer<br>Business APIs)
+    
+    %% AI Features
+    C -->|Feature Engineering| E(Machine Learning<br>scikit-learn Predictor)
+    D -->|Semantic Tagging| F(Unity Catalog<br>AI Context)
+    D -->|Node & Edge Extraction| G(Knowledge Graph<br>GraphRAG)
+    
+    %% Presentation
+    D -->|@databricks/sql| H[Next.js React Dashboard]
+    
+    %% Classes
+    class A,B,C,D layer;
+    class E,F,G databricks;
+    class H react;
+```
+
 The project focuses exclusively on Databricks architecture and its presentation layer:
 1. **Delta Live Tables (DLT)**: Declarative, automated data pipelines replacing traditional ETL.
 2. **Medallion Architecture**: Bronze (raw), Silver (validated), and Gold (aggregated) layers.
 3. **Data Quality**: Integrated constraints via DLT expectations.
 4. **Feature Engineering**: Creating ML features for model training.
-5. **Machine Learning**: Training models (Random Forest) tracked with MLflow.
-6. **Real-time Model Serving**: Deploying serverless endpoints for real-time REST API inference.
-7. **Generative AI & RAG**: Integrating Databricks Foundation Models (Llama-3/DBRX) for a Text-to-SQL Retail Copilot.
-8. **Advanced Governance**: Row-Level Security (RLS) and Dynamic Data Masking via Unity Catalog.
-9. **Ontology & Semantic Context**: Leveraging Unity Catalog metadata tagging, EKG Graph extraction, and AI/BI Genie semantic modeling to ground LLMs in business reality.
-10. **Control Center UI**: A Next.js web application providing a premium glassmorphic dashboard to monitor pipelines and endpoints.
+5. **Machine Learning**: Training models tracked with MLflow.
+6. **Ontology & Semantic Context**: Leveraging Unity Catalog metadata tagging and EKG Graph extraction to ground LLMs in business reality.
+7. **Control Center UI**: A Next.js web application connecting via `@databricks/sql` to monitor pipelines and endpoints.
 
 ## Project Structure
 ```text
