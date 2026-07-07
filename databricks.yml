@@ -59,6 +59,16 @@ resources:
             node_type_id: "Standard_DS3_v2"
             num_workers: 2
 
+  pipelines:
+    retail_dlt_pipeline:
+      name: "Retail DLT Pipeline"
+      development: true
+      target: "retail_demo"
+      catalog: "hive_metastore"
+      libraries:
+        - notebook:
+            path: ./dlt_pipelines/medallion_dlt.py
+
 targets:
   dev:
     workspace:

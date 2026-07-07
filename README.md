@@ -4,16 +4,15 @@ This repository contains a complete end-to-end AI-Ready Data implementation usin
 ## Architecture Overview
 The project follows Microsoft's AI-ready data architecture:
 1. **Infrastructure as Code**: Automated provisioning of Azure and Databricks resources using Terraform.
-2. **Data Sources**: Simulated CSV files representing retail sales.
-3. **Ingestion**: Loading data into Databricks.
-4. **Bronze Layer**: Raw Delta tables, append-only, preserving history.
-5. **Silver Layer**: Cleaned, filtered, and deduplicated Delta tables with MERGE upserts.
-6. **Gold Layer**: Business-level aggregations and KPIs ready for consumption.
-7. **Data Quality**: Assertions and validation checks.
-8. **Feature Engineering**: Creating ML features and storing them for model training.
-9. **Machine Learning**: Training a predictive model (Random Forest) and tracking with MLflow.
-10. **Reporting**: SQL queries to power dashboards.
-11. **CI/CD Pipeline**: GitHub Actions deploy Databricks Asset Bundles and Terraform.
+2. **Delta Live Tables (DLT)**: Declarative, automated data pipelines replacing traditional ETL.
+3. **Medallion Architecture**: Bronze (raw), Silver (validated), and Gold (aggregated) layers.
+4. **Data Quality**: Integrated constraints via DLT expectations.
+5. **Feature Engineering**: Creating ML features for model training.
+6. **Machine Learning**: Training models (Random Forest) tracked with MLflow.
+7. **Real-time Model Serving**: Deploying serverless endpoints for real-time REST API inference.
+8. **Generative AI & RAG**: Integrating Databricks Foundation Models (Llama-3/DBRX) for a Text-to-SQL Retail Copilot.
+9. **Advanced Governance**: Row-Level Security (RLS) and Dynamic Data Masking via Unity Catalog.
+10. **CI/CD Pipeline**: GitHub Actions deploy Databricks Asset Bundles (DABs) and Terraform.
 
 ## Project Structure
 ```text
