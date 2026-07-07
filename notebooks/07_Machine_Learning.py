@@ -1,15 +1,17 @@
 # Databricks notebook source
 # MAGIC %md
 # MAGIC # 07 - Machine Learning
-# MAGIC Train a model to predict high-value customers using Spark ML or scikit-learn.
+# MAGIC Train a model to predict high-value customers using scikit-learn.
+# MAGIC Note: Serverless/Shared compute environments restrict Spark ML (Py4J). Using standard Python ML frameworks like scikit-learn is recommended.
 
 # COMMAND ----------
 import mlflow
-import mlflow.spark
-from pyspark.ml.feature import VectorAssembler
-from pyspark.ml.regression import RandomForestRegressor
-from pyspark.ml.evaluation import RegressionEvaluator
-from pyspark.sql.functions import col, when
+import mlflow.sklearn
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error
+import numpy as np
 
 catalog_name = spark.sql("SELECT current_catalog()").collect()[0][0] 
 schema_name = "retail_demo"
@@ -17,44 +19,42 @@ feature_table = f"{catalog_name}.{schema_name}.customer_features"
 
 # COMMAND ----------
 # MAGIC %md
-# MAGIC ## 1. Load Feature Data
+# MAGIC ## 1. Load Feature Data to Pandas
 
 # COMMAND ----------
-features_df = spark.table(feature_table).dropna()
+# Load from Unity Catalog and convert to Pandas for scikit-learn
+features_df = spark.table(feature_table).dropna().toPandas()
+
 # For this demo, let's predict total_spend based on purchase_count and days_since_last_purchase
-# (In a real scenario, you'd predict a future value, but we use this for the mechanics)
+X = features_df[["purchase_count", "days_since_last_purchase"]]
+y = features_df["total_spend"]
 
 # COMMAND ----------
 # MAGIC %md
-# MAGIC ## 2. Prepare Data for Spark ML
+# MAGIC ## 2. Prepare Train/Test Split
 
 # COMMAND ----------
-assembler = VectorAssembler(
-    inputCols=["purchase_count", "days_since_last_purchase"],
-    outputCol="features"
-)
-ml_data = assembler.transform(features_df)
-
-train_data, test_data = ml_data.randomSplit([0.8, 0.2], seed=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 # COMMAND ----------
 # MAGIC %md
 # MAGIC ## 3. Train Model and Log with MLflow
 
 # COMMAND ----------
-# Enable autologging
-mlflow.pyspark.ml.autolog()
+# Enable autologging for scikit-learn
+mlflow.sklearn.autolog()
 
 with mlflow.start_run(run_name="CustomerSpendPredictor") as run:
-    rf = RandomForestRegressor(featuresCol="features", labelCol="total_spend", numTrees=10)
-    model = rf.fit(train_data)
+    # Train the Random Forest Model
+    rf = RandomForestRegressor(n_estimators=10, random_state=42)
+    rf.fit(X_train, y_train)
     
-    predictions = model.transform(test_data)
+    # Make predictions
+    predictions = rf.predict(X_test)
     
-    evaluator = RegressionEvaluator(labelCol="total_spend", predictionCol="prediction", metricName="rmse")
-    rmse = evaluator.evaluate(predictions)
-    
-    print(f"Root Mean Squared Error (RMSE) on test data = {rmse}")
+    # Evaluate
+    rmse = np.sqrt(mean_squared_error(y_test, predictions))
+    print(f"Root Mean Squared Error (RMSE) on test data = {rmse:.2f}")
     
     # MLflow automatically logs the model, parameters, and metrics
     model_uri = f"runs:/{run.info.run_id}/model"
@@ -65,4 +65,9 @@ with mlflow.start_run(run_name="CustomerSpendPredictor") as run:
 # MAGIC ## 4. View Predictions
 
 # COMMAND ----------
-display(predictions.select("customer_id", "total_spend", "prediction"))
+# Attach predictions back to the test dataset to view them side-by-side
+results_df = X_test.copy()
+results_df["actual_spend"] = y_test
+results_df["predicted_spend"] = predictions
+
+display(results_df)
