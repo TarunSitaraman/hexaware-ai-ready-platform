@@ -11,7 +11,7 @@ from pyspark.ml.regression import RandomForestRegressor
 from pyspark.ml.evaluation import RegressionEvaluator
 from pyspark.sql.functions import col, when
 
-catalog_name = "hive_metastore" 
+catalog_name = spark.sql("SELECT current_catalog()").collect()[0][0] 
 schema_name = "retail_demo"
 feature_table = f"{catalog_name}.{schema_name}.customer_features"
 

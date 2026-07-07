@@ -4,7 +4,7 @@
 # MAGIC In this layer, we save the raw ingested data into Delta format to enable ACID transactions, schema enforcement, and time travel.
 
 # COMMAND ----------
-catalog_name = "hive_metastore" 
+catalog_name = spark.sql("SELECT current_catalog()").collect()[0][0] 
 schema_name = "retail_demo"
 
 # COMMAND ----------

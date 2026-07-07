@@ -6,7 +6,7 @@
 # COMMAND ----------
 from pyspark.sql.functions import sum, count, round, expr
 
-catalog_name = "hive_metastore" 
+catalog_name = spark.sql("SELECT current_catalog()").collect()[0][0] 
 schema_name = "retail_demo"
 silver_table = f"{catalog_name}.{schema_name}.silver_sales"
 

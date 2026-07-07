@@ -10,7 +10,7 @@
 
 # COMMAND ----------
 # Configuration
-catalog_name = "hive_metastore" # Or use your specific Unity Catalog name like 'main'
+catalog_name = spark.sql("SELECT current_catalog()").collect()[0][0] # Or use your specific Unity Catalog name like 'main'
 schema_name = "retail_demo"
 volume_path = "/Volumes/main/retail_demo/raw_data" # Simulated path
 import os

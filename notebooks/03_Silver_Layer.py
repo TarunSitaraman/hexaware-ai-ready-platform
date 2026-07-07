@@ -6,7 +6,7 @@
 # COMMAND ----------
 from pyspark.sql.functions import col, when, to_date
 
-catalog_name = "hive_metastore" 
+catalog_name = spark.sql("SELECT current_catalog()").collect()[0][0] 
 schema_name = "retail_demo"
 bronze_table = f"{catalog_name}.{schema_name}.bronze_sales"
 silver_table = f"{catalog_name}.{schema_name}.silver_sales"

@@ -4,7 +4,7 @@
 # MAGIC Using Data Quality checks on our Delta tables. In a production pipeline, you might use Delta Live Tables (DLT) expectations, but here we demonstrate manual validation checks.
 
 # COMMAND ----------
-catalog_name = "hive_metastore" 
+catalog_name = spark.sql("SELECT current_catalog()").collect()[0][0] 
 schema_name = "retail_demo"
 silver_table = f"{catalog_name}.{schema_name}.silver_sales"
 gold_table = f"{catalog_name}.{schema_name}.gold_daily_sales"

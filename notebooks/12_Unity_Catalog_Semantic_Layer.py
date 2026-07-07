@@ -8,9 +8,9 @@
 # COMMAND ----------
 
 # 1. Define Catalog and Schema
-catalog = "hive_metastore"
+catalog_name = spark.sql("SELECT current_catalog()").collect()[0][0]
 schema = "retail_demo"
-gold_table = f"{catalog}.{schema}.gold_daily_sales"
+gold_table = f"{catalog_name}.{schema}.gold_daily_sales"
 
 # COMMAND ----------
 

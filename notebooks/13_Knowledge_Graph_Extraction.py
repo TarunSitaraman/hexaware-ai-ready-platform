@@ -11,9 +11,9 @@ import pyspark.sql.functions as F
 # COMMAND ----------
 
 # Assume Silver layer contains the clean transactional and customer data
-silver_sales_df = spark.table("hive_metastore.retail_demo.silver_sales")
+silver_sales_df = spark.table(f"{catalog_name}.retail_demo.silver_sales")
 # (Simulating customer data if it existed)
-# customer_df = spark.table("hive_metastore.retail_demo.customers")
+# customer_df = spark.table(f"{catalog_name}.retail_demo.customers")
 
 # COMMAND ----------
 
@@ -62,7 +62,7 @@ product_region_edges = silver_sales_df.select(
 
 # COMMAND ----------
 
-# product_nodes.write.format("delta").mode("overwrite").saveAsTable("hive_metastore.retail_demo.graph_nodes")
-# product_region_edges.write.format("delta").mode("overwrite").saveAsTable("hive_metastore.retail_demo.graph_edges")
+# product_nodes.write.format("delta").mode("overwrite").saveAsTable(f"{catalog_name}.retail_demo.graph_nodes")
+# product_region_edges.write.format("delta").mode("overwrite").saveAsTable(f"{catalog_name}.retail_demo.graph_edges")
 
 print("✅ Knowledge Graph extraction complete. Ready for GraphRAG context injection.")

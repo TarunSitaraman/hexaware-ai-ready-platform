@@ -13,7 +13,7 @@ from databricks.sdk.service.serving import EndpointCoreConfigInput, ServedModelI
 # MAGIC ## 1. Register the Model to Unity Catalog
 
 # COMMAND ----------
-catalog_name = "hive_metastore" 
+catalog_name = spark.sql("SELECT current_catalog()").collect()[0][0] 
 schema_name = "retail_demo"
 model_name = f"{catalog_name}.{schema_name}.customer_spend_predictor"
 
