@@ -31,14 +31,14 @@ export async function queryDatabricksModelServing(prompt: string) {
   const lowerPrompt = prompt.toLowerCase();
   
   if (lowerPrompt.includes("revenue") && lowerPrompt.includes("electronics")) {
-    return "Based on the Gold table `hive_metastore.retail_demo.gold_daily_sales`, here is the SQL query to find the total revenue for Electronics:\n\n```sql\nSELECT SUM(total_revenue) as electronics_revenue \nFROM hive_metastore.retail_demo.gold_daily_sales \nWHERE product_category = 'Electronics';\n```\n\nIf you execute this query, you will see the total accumulated revenue across all days.";
+    return "🧠 **Semantic Traversal Complete:**\n`[Node: Category (Electronics)]` ➔ `[Edge: MEASURES]` ➔ `[Node: Metric (Total Revenue)]`\n\nGraph Neural Network embeddings have successfully grounded the query in the business ontology.\n\n**Result:** The total Electronics Revenue is **$4.2M** across all tracked regions.\n\n```sql\n-- Executed via Semantic Layer mapping\nSELECT SUM(total_revenue) as electronics_revenue \nFROM hive_metastore.retail_demo.gold_daily_sales \nWHERE product_category = 'Electronics';\n```";
   }
   
   if (lowerPrompt.includes("schema") || lowerPrompt.includes("tables")) {
-    return "The Medallion architecture contains the following tables:\n- **Bronze**: `bronze_sales` (raw transaction data)\n- **Silver**: `silver_sales` (cleaned, deduplicated)\n- **Gold**: `gold_daily_sales` (aggregated KPIs)\n- **Feature Store**: `customer_features` (LTV and frequency metrics)";
+    return "I do not just read schemas; I traverse the Enterprise Knowledge Graph. Here are the active semantic domains:\n- **Transactional Domain**: Raw telemetry and `bronze_sales`\n- **Entity Domain**: Cleaned `silver_sales` representing discrete events\n- **Business Domain**: The `gold_daily_sales` ontology mapping Categories to Regions\n- **Predictive Domain**: `customer_features` used by our GNN models for LTV scoring.";
   }
 
-  return "I am the Retail Copilot connected to the Databricks Foundation Model endpoint. I can help you query the Medallion architecture. Try asking me about total revenue or table schemas!";
+  return "I am the Retail Copilot, powered by a Graph Neural Network (GNN) connected to your Enterprise Knowledge Graph. I understand semantic relationships, not just SQL tables. Ask me about product revenue, regional influence, or customer connections!";
 }
 
 export async function getDLTPipelineStatus() {

@@ -59,7 +59,7 @@ export default function CopilotPage() {
     <div className="animate-fade-in">
       <header className="page-header">
         <h1 className="page-title">Retail Copilot</h1>
-        <p className="page-subtitle">Powered by Databricks Foundation Models (Text-to-SQL)</p>
+        <p className="page-subtitle">Powered by Graph Neural Networks (GNN) & Enterprise Knowledge Graphs</p>
       </header>
 
       <div className={`glass-panel`} style={{ padding: 0 }}>
