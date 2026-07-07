@@ -34,7 +34,6 @@
 }
 
 .node:hover {
-  transform: scale(1.05);
   border-color: var(--accent-secondary);
   box-shadow: 0 0 20px var(--accent-glow);
   z-index: 10;
