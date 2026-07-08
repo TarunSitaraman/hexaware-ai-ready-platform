@@ -118,142 +118,155 @@ function App() {
 
         {/* Scrollable Content */}
         <div className="content-scroll">
-          <div className="controls-header">
-            <div>
-              <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Overview</h1>
-              <p style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>Real-time metrics aggregated via Databricks Semantic Layer.</p>
+          {activeTab !== 'overview' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', color: 'var(--text-secondary)' }}>
+              <Database size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Module</h2>
+              <p>This module is currently in development.</p>
+              <button className="btn btn-primary" style={{ marginTop: '1.5rem' }} onClick={() => setActiveTab('overview')}>
+                Return to Overview
+              </button>
             </div>
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
-              <button className="btn"><Clock size={16}/> Last 30 Days</button>
-              <button className="btn btn-primary"><Download size={16}/> Export Report</button>
-            </div>
-          </div>
-
-          {/* KPIs */}
-          <div className="kpi-row">
-            <div className="kpi-card">
-              <div className="kpi-title">Gross Revenue</div>
-              <div className="kpi-value">{formatCurrency(data.kpis.grossRevenue)}</div>
-              <div className="kpi-meta trend-up">+8.4% YoY</div>
-            </div>
-            <div className="kpi-card">
-              <div className="kpi-title">Overall Gross Margin</div>
-              <div className="kpi-value">{data.kpis.grossMargin.toFixed(1)}%</div>
-              <div className="kpi-meta trend-up">+2.1% YoY</div>
-            </div>
-            <div className="kpi-card">
-              <div className="kpi-title">Total Billable Hours</div>
-              <div className="kpi-value">{data.kpis.billableHours.toLocaleString()}</div>
-              <div className="kpi-meta trend-up">+4.2% MoM</div>
-            </div>
-            <div className="kpi-card">
-              <div className="kpi-title">Bench Hours</div>
-              <div className="kpi-value">{data.kpis.benchHours.toLocaleString()}</div>
-              <div className="kpi-meta trend-down">-12.5% MoM</div>
-            </div>
-          </div>
-
-          <div className="dashboard-grid">
-            {/* Area Chart Panel */}
-            <div className="panel">
-              <div className="panel-header">
-                <span className="panel-title">Revenue & Cost Efficiency</span>
-              </div>
-              <div className="panel-content" style={{ height: '300px', padding: '1rem 0' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={data.revenueTrend} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#2563eb" stopOpacity={0.2}/>
-                        <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-default)" />
-                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: 'var(--text-secondary)'}} dy={10} />
-                    <YAxis axisLine={false} tickLine={false} tick={{fill: 'var(--text-secondary)'}} tickFormatter={(val) => `$${val/1000}k`} />
-                    <Tooltip 
-                      contentStyle={{ borderRadius: '8px', border: '1px solid var(--border-default)', boxShadow: 'var(--shadow-md)' }}
-                    />
-                    <Area type="monotone" dataKey="revenue" name="Gross Revenue" stroke="#2563eb" strokeWidth={2} fillOpacity={1} fill="url(#colorRev)" />
-                    <Area type="monotone" dataKey="cost" name="Resource Cost" stroke="#94a3b8" strokeDasharray="5 5" fill="none" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* Bar Chart Panel */}
-            <div className="panel">
-              <div className="panel-header">
-                <span className="panel-title">Margin by Practice</span>
-              </div>
-              <div className="panel-content" style={{ height: '300px', padding: '1rem' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={data.practiceMargins} layout="vertical" margin={{ top: 0, right: 20, left: 20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="var(--border-default)" />
-                    <XAxis type="number" domain={[0, 100]} hide />
-                    <YAxis dataKey="practice" type="category" axisLine={false} tickLine={false} tick={{fill: 'var(--text-secondary)', fontSize: 12}} width={110} />
-                    <Tooltip cursor={{fill: 'var(--bg-surface-hover)'}} contentStyle={{ borderRadius: '8px', border: '1px solid var(--border-default)' }} />
-                    <Bar dataKey="margin" name="Margin %" radius={[0, 4, 4, 0]} barSize={16}>
-                      {data.practiceMargins.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          </div>
-
-          {/* Interactive Data Grid */}
-          <div className="panel">
-            <div className="panel-header" style={{ padding: '0' }}>
-              <div className="table-controls">
-                <div className="search-input">
-                  <Search size={16} color="var(--text-tertiary)" />
-                  <input 
-                    type="text" 
-                    placeholder="Filter projects by client or type..." 
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
+          ) : (
+            <>
+              <div className="controls-header">
+                <div>
+                  <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Overview</h1>
+                  <p style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>Real-time metrics aggregated via Databricks Semantic Layer.</p>
+                </div>
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                  <button className="btn"><Clock size={16}/> Last 30 Days</button>
+                  <button className="btn btn-primary"><Download size={16}/> Export Report</button>
                 </div>
               </div>
-            </div>
-            
-            <table className="interactive-table">
-              <thead>
-                <tr>
-                  <th>Client Engagement</th>
-                  <th>Type</th>
-                  <th>Revenue</th>
-                  <th>Cost</th>
-                  <th>Total Hours</th>
-                  <th>Margin Health</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredProjects.map((proj, idx) => {
-                  const projMargin = ((proj.projectRevenue - proj.projectCost) / proj.projectRevenue) * 100;
-                  return (
-                    <tr 
-                      key={idx} 
-                      className={selectedProject?.client_name === proj.client_name ? 'selected' : ''}
-                      onClick={() => setSelectedProject({...proj, margin: projMargin})}
-                    >
-                      <td style={{fontWeight: 500}}>{proj.client_name}</td>
-                      <td><span className="badge badge-neutral">{proj.project_type}</span></td>
-                      <td>{formatCurrency(proj.projectRevenue)}</td>
-                      <td style={{color: 'var(--text-secondary)'}}>{formatCurrency(proj.projectCost)}</td>
-                      <td>{proj.totalHours.toLocaleString()}</td>
-                      <td>{getMarginBadge(projMargin)}</td>
-                      <td style={{textAlign: 'right'}}><ChevronRight size={16} color="var(--text-tertiary)"/></td>
+
+              {/* KPIs */}
+              <div className="kpi-row">
+                <div className="kpi-card">
+                  <div className="kpi-title">Gross Revenue</div>
+                  <div className="kpi-value">{formatCurrency(data.kpis.grossRevenue)}</div>
+                  <div className="kpi-meta trend-up">+8.4% YoY</div>
+                </div>
+                <div className="kpi-card">
+                  <div className="kpi-title">Overall Gross Margin</div>
+                  <div className="kpi-value">{data.kpis.grossMargin.toFixed(1)}%</div>
+                  <div className="kpi-meta trend-up">+2.1% YoY</div>
+                </div>
+                <div className="kpi-card">
+                  <div className="kpi-title">Total Billable Hours</div>
+                  <div className="kpi-value">{data.kpis.billableHours.toLocaleString()}</div>
+                  <div className="kpi-meta trend-up">+4.2% MoM</div>
+                </div>
+                <div className="kpi-card">
+                  <div className="kpi-title">Bench Hours</div>
+                  <div className="kpi-value">{data.kpis.benchHours.toLocaleString()}</div>
+                  <div className="kpi-meta trend-down">-12.5% MoM</div>
+                </div>
+              </div>
+
+              <div className="dashboard-grid">
+                {/* Area Chart Panel */}
+                <div className="panel">
+                  <div className="panel-header">
+                    <span className="panel-title">Revenue & Cost Efficiency</span>
+                  </div>
+                  <div className="panel-content" style={{ minHeight: '350px', height: '350px', padding: '1rem 0' }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={data.revenueTrend} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#2563eb" stopOpacity={0.2}/>
+                            <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-default)" />
+                        <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: 'var(--text-secondary)'}} dy={10} />
+                        <YAxis axisLine={false} tickLine={false} tick={{fill: 'var(--text-secondary)'}} tickFormatter={(val) => `$${val/1000}k`} />
+                        <Tooltip 
+                          contentStyle={{ borderRadius: '8px', border: '1px solid var(--border-default)', boxShadow: 'var(--shadow-md)' }}
+                        />
+                        <Area type="monotone" dataKey="revenue" name="Gross Revenue" stroke="#2563eb" strokeWidth={2} fillOpacity={1} fill="url(#colorRev)" />
+                        <Area type="monotone" dataKey="cost" name="Resource Cost" stroke="#94a3b8" strokeDasharray="5 5" fill="none" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* Bar Chart Panel */}
+                <div className="panel">
+                  <div className="panel-header">
+                    <span className="panel-title">Margin by Practice</span>
+                  </div>
+                  <div className="panel-content" style={{ minHeight: '350px', height: '350px', padding: '1rem' }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={data.practiceMargins} layout="vertical" margin={{ top: 0, right: 20, left: 20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="var(--border-default)" />
+                        <XAxis type="number" domain={[0, 100]} hide />
+                        <YAxis dataKey="practice" type="category" axisLine={false} tickLine={false} tick={{fill: 'var(--text-secondary)', fontSize: 12}} width={110} />
+                        <Tooltip cursor={{fill: 'var(--bg-surface-hover)'}} contentStyle={{ borderRadius: '8px', border: '1px solid var(--border-default)' }} />
+                        <Bar dataKey="margin" name="Margin %" radius={[0, 4, 4, 0]} barSize={16}>
+                          {data.practiceMargins.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              {/* Interactive Data Grid */}
+              <div className="panel">
+                <div className="panel-header" style={{ padding: '0' }}>
+                  <div className="table-controls">
+                    <div className="search-input">
+                      <Search size={16} color="var(--text-tertiary)" />
+                      <input 
+                        type="text" 
+                        placeholder="Filter projects by client or type..." 
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <table className="interactive-table">
+                  <thead>
+                    <tr>
+                      <th>Client Engagement</th>
+                      <th>Type</th>
+                      <th>Revenue</th>
+                      <th>Cost</th>
+                      <th>Total Hours</th>
+                      <th>Margin Health</th>
+                      <th></th>
                     </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+                  </thead>
+                  <tbody>
+                    {filteredProjects.map((proj, idx) => {
+                      const projMargin = ((proj.projectRevenue - proj.projectCost) / proj.projectRevenue) * 100;
+                      return (
+                        <tr 
+                          key={idx} 
+                          className={selectedProject?.client_name === proj.client_name ? 'selected' : ''}
+                          onClick={() => setSelectedProject({...proj, margin: projMargin})}
+                        >
+                          <td style={{fontWeight: 500}}>{proj.client_name}</td>
+                          <td><span className="badge badge-neutral">{proj.project_type}</span></td>
+                          <td>{formatCurrency(proj.projectRevenue)}</td>
+                          <td style={{color: 'var(--text-secondary)'}}>{formatCurrency(proj.projectCost)}</td>
+                          <td>{proj.totalHours.toLocaleString()}</td>
+                          <td>{getMarginBadge(projMargin)}</td>
+                          <td style={{textAlign: 'right'}}><ChevronRight size={16} color="var(--text-tertiary)"/></td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
         </div>
       </main>
 
