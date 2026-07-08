@@ -118,16 +118,7 @@ function App() {
 
         {/* Scrollable Content */}
         <div className="content-scroll">
-          {activeTab !== 'overview' ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', color: 'var(--text-secondary)' }}>
-              <Database size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Module</h2>
-              <p>This module is currently in development.</p>
-              <button className="btn btn-primary" style={{ marginTop: '1.5rem' }} onClick={() => setActiveTab('overview')}>
-                Return to Overview
-              </button>
-            </div>
-          ) : (
+          {activeTab === 'overview' && (
             <>
               <div className="controls-header">
                 <div>
@@ -244,7 +235,7 @@ function App() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredProjects.map((proj, idx) => {
+                    {filteredProjects.slice(0, 5).map((proj, idx) => {
                       const projMargin = ((proj.projectRevenue - proj.projectCost) / proj.projectRevenue) * 100;
                       return (
                         <tr 
@@ -267,6 +258,119 @@ function App() {
               </div>
             </>
           )}
+
+          {activeTab === 'analytics' && (
+            <div className="panel">
+              <div className="panel-header">
+                <span className="panel-title">Deep Dive Analytics</span>
+              </div>
+              <div className="panel-content" style={{ minHeight: '600px', height: '600px', padding: '1rem 0' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={data.revenueTrend} margin={{ top: 20, right: 30, left: 20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorRevFull" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="colorCostFull" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.2}/>
+                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-default)" />
+                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: 'var(--text-secondary)'}} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{fill: 'var(--text-secondary)'}} tickFormatter={(val) => `$${val/1000}k`} />
+                    <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid var(--border-default)', boxShadow: 'var(--shadow-md)' }} />
+                    <Area type="monotone" dataKey="revenue" name="Gross Revenue" stroke="#2563eb" strokeWidth={3} fillOpacity={1} fill="url(#colorRevFull)" />
+                    <Area type="monotone" dataKey="cost" name="Resource Cost" stroke="#ef4444" strokeWidth={3} fillOpacity={1} fill="url(#colorCostFull)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'consultants' && (
+            <div className="panel">
+              <div className="panel-header">
+                <span className="panel-title">Consultant Utilization Database</span>
+              </div>
+              <table className="interactive-table">
+                <thead>
+                  <tr>
+                    <th>Consultant Name</th>
+                    <th>Practice Area</th>
+                    <th>Level</th>
+                    <th>Billable Hours</th>
+                    <th>Bench Hours</th>
+                    <th>Utilization Rate</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.consultantsData?.map((cons, idx) => {
+                    const total = cons.billable + cons.bench;
+                    const utilRate = total > 0 ? (cons.billable / total) * 100 : 0;
+                    return (
+                      <tr key={idx}>
+                        <td style={{fontWeight: 500}}>{cons.name}</td>
+                        <td>{cons.practice}</td>
+                        <td><span className="badge badge-neutral">{cons.level}</span></td>
+                        <td>{cons.billable.toLocaleString()}</td>
+                        <td style={{color: 'var(--semantic-danger)'}}>{cons.bench.toLocaleString()}</td>
+                        <td>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <div className="progress-bar-bg" style={{ flex: 1, margin: 0 }}>
+                              <div className="progress-bar-fill" style={{ width: `${utilRate}%`, background: utilRate > 80 ? 'var(--semantic-success)' : 'var(--semantic-warning)' }}></div>
+                            </div>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>{utilRate.toFixed(0)}%</span>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {activeTab === 'projects' && (
+            <div className="panel">
+              <div className="panel-header">
+                <span className="panel-title">Master Projects Database</span>
+                <div className="search-input" style={{ width: '300px', padding: '0.3rem 0.5rem' }}>
+                  <Search size={14} color="var(--text-tertiary)" />
+                  <input type="text" placeholder="Search master project list..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                </div>
+              </div>
+              <table className="interactive-table">
+                <thead>
+                  <tr>
+                    <th>Client Engagement</th>
+                    <th>Type</th>
+                    <th>Revenue</th>
+                    <th>Cost</th>
+                    <th>Total Hours</th>
+                    <th>Margin Health</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredProjects.map((proj, idx) => {
+                    const projMargin = ((proj.projectRevenue - proj.projectCost) / proj.projectRevenue) * 100;
+                    return (
+                      <tr key={idx} onClick={() => setSelectedProject({...proj, margin: projMargin})}>
+                        <td style={{fontWeight: 500}}>{proj.client_name}</td>
+                        <td><span className="badge badge-neutral">{proj.project_type}</span></td>
+                        <td>{formatCurrency(proj.projectRevenue)}</td>
+                        <td style={{color: 'var(--text-secondary)'}}>{formatCurrency(proj.projectCost)}</td>
+                        <td>{proj.totalHours.toLocaleString()}</td>
+                        <td>{getMarginBadge(projMargin)}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
         </div>
       </main>
 

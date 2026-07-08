@@ -88,6 +88,31 @@ app.get('/api/dashboard-data', async (req, res) => {
     const data = kpis[0];
     const grossMargin = ((data.grossRevenue - data.resourceCost) / data.grossRevenue) * 100;
 
+    // Query 4: Consultant Utilization (NEW)
+    const consultantsQuery = `
+      SELECT 
+        c.consultant_name,
+        c.practice_area,
+        c.level,
+        CAST(SUM(CASE WHEN t.is_billable THEN t.hours_logged ELSE 0 END) AS DOUBLE) as billable_hours,
+        CAST(SUM(CASE WHEN NOT t.is_billable THEN t.hours_logged ELSE 0 END) AS DOUBLE) as bench_hours
+      FROM ${catalog}.${schema}.fact_timesheet t
+      JOIN ${catalog}.${schema}.dim_consultant c ON t.consultant_id = c.consultant_id
+      GROUP BY c.consultant_name, c.practice_area, c.level
+      ORDER BY billable_hours DESC
+      LIMIT 25
+    `;
+    const consultantsResult = await session.executeStatement(consultantsQuery);
+    const consultantsRaw = await consultantsResult.fetchAll();
+    
+    const consultantsData = consultantsRaw.map(row => ({
+      name: row.consultant_name,
+      practice: row.practice_area,
+      level: row.level,
+      billable: Number(row.billable_hours) || 0,
+      bench: Number(row.bench_hours) || 0
+    }));
+
     res.json({
       kpis: {
         grossRevenue: data.grossRevenue,
@@ -103,7 +128,8 @@ app.get('/api/dashboard-data', async (req, res) => {
         { month: 'Jul (Live)', revenue: data.grossRevenue, cost: data.resourceCost }
       ],
       practiceMargins: practiceMargins,
-      topProjects: topProjects
+      topProjects: topProjects,
+      consultantsData: consultantsData
     });
   } catch (error) {
     console.error("Databricks Error:", error);
