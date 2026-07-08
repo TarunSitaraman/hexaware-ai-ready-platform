@@ -2,36 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Legend } from 'recharts';
 import { ArrowUpRight, ArrowDownRight, Users, DollarSign, Briefcase, Activity } from 'lucide-react';
 
-// Simulated API Call to Databricks SQL Warehouse via Semantic Layer
-// In production, you would use databricks/sql package to query the Unity Catalog Metric Views
-const fetchDatabricksSemanticLayer = () => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        kpis: {
-          grossRevenue: 2845000,
-          resourceCost: 1650000,
-          grossMargin: 42.0, // (2.84M - 1.65M) / 2.84M
-          billableHours: 14200,
-          benchHours: 1800
-        },
-        revenueTrend: [
-          { month: 'Jan', revenue: 420000, cost: 260000 },
-          { month: 'Feb', revenue: 450000, cost: 275000 },
-          { month: 'Mar', revenue: 485000, cost: 280000 },
-          { month: 'Apr', revenue: 470000, cost: 270000 },
-          { month: 'May', revenue: 510000, cost: 285000 },
-          { month: 'Jun', revenue: 510000, cost: 280000 }
-        ],
-        practiceMargins: [
-          { practice: 'Data & AI', margin: 48 },
-          { practice: 'Cloud', margin: 45 },
-          { practice: 'ServiceNow', margin: 38 },
-          { practice: 'QA', margin: 32 }
-        ]
-      });
-    }, 800);
-  });
+// Live API Call to Databricks SQL Warehouse via our Node Backend
+const fetchDatabricksSemanticLayer = async () => {
+  try {
+    const res = await fetch('http://localhost:3001/api/dashboard-data');
+    if (!res.ok) throw new Error("Failed to fetch from backend");
+    return await res.json();
+  } catch (err) {
+    console.error("Failed to connect to backend:", err);
+    alert("Make sure you started the Node backend server (node server.js) and configured your .env file!");
+    return null;
+  }
 };
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b'];
