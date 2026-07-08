@@ -113,6 +113,25 @@ app.get('/api/dashboard-data', async (req, res) => {
       bench: Number(row.bench_hours) || 0
     }));
 
+    // Query 5: Knowledge Graph Data (NEW)
+    let graphData = { nodes: [], links: [] };
+    try {
+      const graphNodesQuery = `SELECT id, name, label, properties FROM ${catalog}.${schema}.kg_nodes`;
+      const graphNodesResult = await session.executeStatement(graphNodesQuery);
+      const graphNodesRaw = await graphNodesResult.fetchAll();
+  
+      const graphEdgesQuery = `SELECT src as source, dst as target, relationship as label, weight FROM ${catalog}.${schema}.kg_edges`;
+      const graphEdgesResult = await session.executeStatement(graphEdgesQuery);
+      const graphEdgesRaw = await graphEdgesResult.fetchAll();
+      
+      graphData = {
+        nodes: graphNodesRaw.map(n => ({ id: n.id, name: n.name, group: n.label, properties: n.properties })),
+        links: graphEdgesRaw.map(e => ({ source: e.source, target: e.target, label: e.label, weight: e.weight }))
+      };
+    } catch (e) {
+      console.log("Graph tables might not exist yet, skipping graph data.", e.message);
+    }
+
     res.json({
       kpis: {
         grossRevenue: data.grossRevenue,
@@ -129,7 +148,8 @@ app.get('/api/dashboard-data', async (req, res) => {
       ],
       practiceMargins: practiceMargins,
       topProjects: topProjects,
-      consultantsData: consultantsData
+      consultantsData: consultantsData,
+      graphData: graphData
     });
   } catch (error) {
     console.error("Databricks Error:", error);

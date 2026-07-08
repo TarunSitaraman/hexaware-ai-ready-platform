@@ -2,9 +2,10 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { 
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell 
 } from 'recharts';
+import ForceGraph2D from 'react-force-graph-2d';
 import { 
   LayoutDashboard, PieChart, Users, DollarSign, Activity, 
-  Search, Download, Settings, ChevronRight, X, Clock, Briefcase, Database
+  Search, Download, Settings, ChevronRight, X, Clock, Briefcase, Database, Network
 } from 'lucide-react';
 
 const fetchDatabricksSemanticLayer = async () => {
@@ -96,6 +97,9 @@ function App() {
           </div>
           <div className={`nav-item ${activeTab === 'projects' ? 'active' : ''}`} onClick={() => setActiveTab('projects')}>
             <Briefcase size={18} /> Projects Database
+          </div>
+          <div className={`nav-item ${activeTab === 'graph' ? 'active' : ''}`} onClick={() => setActiveTab('graph')}>
+            <Network size={18} /> Knowledge Graph
           </div>
         </nav>
       </aside>
@@ -368,6 +372,35 @@ function App() {
                   })}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {activeTab === 'graph' && (
+            <div className="panel" style={{ overflow: 'hidden' }}>
+              <div className="panel-header">
+                <span className="panel-title">Databricks AI Knowledge Graph</span>
+              </div>
+              <div style={{ height: '700px', width: '100%', position: 'relative' }}>
+                {data.graphData && data.graphData.nodes.length > 0 ? (
+                  <ForceGraph2D
+                    graphData={data.graphData}
+                    nodeLabel={(node) => `${node.group}: ${node.name}\n${node.properties || ''}`}
+                    nodeColor={(node) => {
+                      if (node.group === 'Consultant') return '#3b82f6';
+                      if (node.group === 'Project') return '#10b981';
+                      if (node.group === 'Practice') return '#f59e0b';
+                      return '#64748b';
+                    }}
+                    linkColor={() => 'rgba(148, 163, 184, 0.3)'}
+                    linkWidth={(link) => Math.min(link.weight / 100, 5) || 1}
+                    nodeRelSize={6}
+                  />
+                ) : (
+                  <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
+                    <p>No graph data found. Make sure you generated the kg_nodes and kg_edges tables in Databricks!</p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
