@@ -91,14 +91,14 @@ app.get('/api/dashboard-data', async (req, res) => {
     // Query 4: Consultant Utilization (NEW)
     const consultantsQuery = `
       SELECT 
-        c.consultant_name,
+        c.full_name as consultant_name,
         c.practice_area,
-        c.level,
+        c.role_level as level,
         CAST(SUM(CASE WHEN t.is_billable THEN t.hours_logged ELSE 0 END) AS DOUBLE) as billable_hours,
         CAST(SUM(CASE WHEN NOT t.is_billable THEN t.hours_logged ELSE 0 END) AS DOUBLE) as bench_hours
       FROM ${catalog}.${schema}.fact_timesheet t
       JOIN ${catalog}.${schema}.dim_consultant c ON t.consultant_id = c.consultant_id
-      GROUP BY c.consultant_name, c.practice_area, c.level
+      GROUP BY c.full_name, c.practice_area, c.role_level
       ORDER BY billable_hours DESC
       LIMIT 25
     `;

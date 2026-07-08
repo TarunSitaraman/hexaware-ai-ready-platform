@@ -25,9 +25,9 @@ print("Generating Graph Nodes...")
 # A. Consultant Nodes
 consultant_nodes = dim_consultant.select(
     concat(lit("CONS_"), col("consultant_id")).alias("id"),
-    col("consultant_name").alias("name"),
+    col("full_name").alias("name"),
     lit("Consultant").alias("label"),
-    concat(lit("Level: "), col("level"), lit(", Rate: $"), col("hourly_cost")).alias("properties")
+    concat(lit("Level: "), col("role_level"), lit(", Rate: $"), col("hourly_cost")).alias("properties")
 )
 
 # B. Project Nodes
