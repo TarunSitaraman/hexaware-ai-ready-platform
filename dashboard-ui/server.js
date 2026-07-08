@@ -27,6 +27,10 @@ app.get('/api/dashboard-data', async (req, res) => {
     session = await getDatabricksConnection();
     const catalog = process.env.DATABRICKS_CATALOG || 'hive_metastore';
     const schema = 'hexaware_poc';
+    
+    // Explicitly set the catalog to avoid Hive Metastore disabled errors
+    await session.executeStatement(`USE CATALOG ${catalog}`);
+    await session.executeStatement(`USE SCHEMA ${schema}`);
 
     // Query 1: Top level KPIs calculated by the semantic layer tables
     const kpiQuery = `
