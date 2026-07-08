@@ -97,6 +97,13 @@ for i in range(1, 101): # 100 consultants
     })
 
 df_consultants = spark.createDataFrame(pd.DataFrame(consultants))
+df_consultants = df_consultants.selectExpr(
+    "cast(consultant_id as int)", 
+    "cast(full_name as string)", 
+    "cast(role_level as string)", 
+    "cast(practice_area as string)", 
+    "cast(hourly_cost as decimal(10,2))"
+)
 df_consultants.write.mode("append").saveAsTable("dim_consultant")
 
 # 2. Generate Projects
@@ -111,6 +118,12 @@ for i in range(1, 21): # 20 active projects
     })
 
 df_projects = spark.createDataFrame(pd.DataFrame(projects))
+df_projects = df_projects.selectExpr(
+    "cast(project_id as int)", 
+    "cast(client_name as string)", 
+    "cast(project_type as string)", 
+    "cast(hourly_bill_rate as decimal(10,2))"
+)
 df_projects.write.mode("append").saveAsTable("dim_project")
 
 # 3. Generate Timesheets (last 60 days)
@@ -145,6 +158,14 @@ for c in consultants:
             ts_id += 1
 
 df_timesheets = spark.createDataFrame(pd.DataFrame(timesheets))
+df_timesheets = df_timesheets.selectExpr(
+    "cast(timesheet_id as int)", 
+    "cast(consultant_id as int)", 
+    "cast(project_id as int)", 
+    "cast(work_date as date)", 
+    "cast(hours_logged as decimal(5,2))", 
+    "cast(is_billable as boolean)"
+)
 df_timesheets.write.mode("append").saveAsTable("fact_timesheet")
 
 print(f"Data generation complete! Inserted {len(consultants)} consultants, {len(projects)} projects, and {len(timesheets)} timesheet records.")
