@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell 
 } from 'recharts';
@@ -30,6 +30,16 @@ function App() {
   // Interaction States
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProject, setSelectedProject] = useState(null);
+  const [selectedGraphNode, setSelectedGraphNode] = useState(null);
+  const fgRef = useRef();
+
+  useEffect(() => {
+    if (activeTab === 'graph' && fgRef.current) {
+      // Tune the physics engine for a much cleaner layout
+      fgRef.current.d3Force('charge').strength(-300);
+      fgRef.current.d3Force('link').distance(80);
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     fetchDatabricksSemanticLayer().then(res => {
@@ -376,28 +386,93 @@ function App() {
           )}
 
           {activeTab === 'graph' && (
-            <div className="panel" style={{ overflow: 'hidden' }}>
-              <div className="panel-header">
-                <span className="panel-title">Databricks AI Knowledge Graph</span>
-              </div>
-              <div style={{ height: '700px', width: '100%', position: 'relative' }}>
+            <div className="panel" style={{ overflow: 'hidden', display: 'flex', height: '700px', flexDirection: 'row' }}>
+              <div style={{ flex: 1, position: 'relative' }}>
+                <div className="panel-header" style={{ position: 'absolute', top: 0, left: 0, zIndex: 10, background: 'rgba(255,255,255,0.9)', borderBottom: 'none', padding: '1rem', borderRadius: '8px 0 8px 0' }}>
+                  <span className="panel-title">Resource & Domain Knowledge Graph</span>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Physics-based semantic visualization. Scroll to zoom, click nodes to inspect.</p>
+                </div>
                 {data.graphData && data.graphData.nodes.length > 0 ? (
                   <ForceGraph2D
+                    ref={fgRef}
                     graphData={data.graphData}
-                    nodeLabel={(node) => `${node.group}: ${node.name}\n${node.properties || ''}`}
-                    nodeColor={(node) => {
-                      if (node.group === 'Consultant') return '#3b82f6';
-                      if (node.group === 'Project') return '#10b981';
-                      if (node.group === 'Practice') return '#f59e0b';
-                      return '#64748b';
+                    nodeLabel={() => ''}
+                    onNodeClick={(node) => setSelectedGraphNode(node)}
+                    linkColor={() => 'rgba(148, 163, 184, 0.4)'}
+                    linkWidth={(link) => Math.min(link.weight / 100, 3) || 1}
+                    nodeCanvasObject={(node, ctx, globalScale) => {
+                      const size = node.group === 'Project' ? 8 : node.group === 'Practice' ? 10 : 4;
+                      const color = node.group === 'Project' ? '#10b981' : node.group === 'Practice' ? '#f59e0b' : '#3b82f6';
+                      
+                      // Draw Node Circle
+                      ctx.beginPath();
+                      ctx.arc(node.x, node.y, size, 0, 2 * Math.PI, false);
+                      ctx.fillStyle = color;
+                      ctx.fill();
+                      
+                      // Draw Text Labels directly on canvas
+                      if (globalScale > 1.5 || node.group !== 'Consultant') {
+                        const label = node.name;
+                        const fontSize = (node.group === 'Consultant' ? 10 : 12) / globalScale;
+                        ctx.font = `${fontSize}px Inter, sans-serif`;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'top';
+                        
+                        const textWidth = ctx.measureText(label).width;
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                        ctx.fillRect(node.x - textWidth / 2 - 2, node.y + size + 2, textWidth + 4, fontSize + 4);
+                        
+                        ctx.fillStyle = '#1e293b';
+                        ctx.fillText(label, node.x, node.y + size + 4);
+                      }
                     }}
-                    linkColor={() => 'rgba(148, 163, 184, 0.3)'}
-                    linkWidth={(link) => Math.min(link.weight / 100, 5) || 1}
-                    nodeRelSize={6}
                   />
                 ) : (
                   <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
                     <p>No graph data found. Make sure you generated the kg_nodes and kg_edges tables in Databricks!</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Context Panel for Actionability */}
+              <div style={{ width: '350px', borderLeft: '1px solid var(--border-default)', background: 'var(--bg-surface)', padding: '1.5rem', overflowY: 'auto' }}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '1.5rem' }}>Graph Node Inspector</h3>
+                {selectedGraphNode ? (
+                  <div>
+                    <div style={{ marginBottom: '1rem' }}>
+                      <span className={`badge ${selectedGraphNode.group === 'Project' ? 'badge-success' : selectedGraphNode.group === 'Practice' ? 'badge-warning' : 'badge-neutral'}`}>
+                        {selectedGraphNode.group} Node
+                      </span>
+                    </div>
+                    <h4 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>{selectedGraphNode.name}</h4>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '2rem' }}>ID: {selectedGraphNode.id}</p>
+                    
+                    <div style={{ padding: '1rem', background: 'var(--bg-body)', borderRadius: '8px', border: '1px solid var(--border-default)' }}>
+                      <h5 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Properties</h5>
+                      <div style={{ fontSize: '0.9rem', lineHeight: '1.6' }}>
+                        {selectedGraphNode.properties ? selectedGraphNode.properties.split(',').map((prop, i) => (
+                          <div key={i} style={{ padding: '0.5rem 0', borderBottom: i !== selectedGraphNode.properties.split(',').length -1 ? '1px solid var(--border-default)' : 'none' }}>
+                            {prop.trim()}
+                          </div>
+                        )) : <span style={{ color: 'var(--text-tertiary)' }}>No properties defined.</span>}
+                      </div>
+                    </div>
+                    
+                    <div style={{ marginTop: '2rem' }}>
+                      <h5 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Suggested Actions</h5>
+                      {selectedGraphNode.group === 'Consultant' && (
+                         <button className="btn btn-primary" style={{ width: '100%', marginBottom: '0.75rem', justifyContent: 'center' }}>Find Similar Consultants</button>
+                      )}
+                      {selectedGraphNode.group === 'Project' && (
+                         <button className="btn btn-primary" style={{ width: '100%', marginBottom: '0.75rem', justifyContent: 'center' }}>Analyze Resource Risk</button>
+                      )}
+                      <button className="btn" style={{ width: '100%', justifyContent: 'center' }}>View Full 360° Profile</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60%', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                    <Network size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
+                    <p style={{ fontSize: '0.95rem' }}>Click on any node in the graph to inspect its properties and relationships.</p>
                   </div>
                 )}
               </div>
