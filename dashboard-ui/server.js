@@ -62,6 +62,24 @@ app.get('/api/dashboard-data', async (req, res) => {
     const practiceResult = await session.executeStatement(practiceQuery);
     const practiceMargins = await practiceResult.fetchAll();
 
+    // Query 3: Top Projects for the Data Grid
+    const projectsQuery = `
+      SELECT 
+        p.client_name,
+        p.project_type,
+        CAST(SUM(CASE WHEN t.is_billable THEN t.hours_logged * p.hourly_bill_rate ELSE 0 END) AS DOUBLE) as projectRevenue,
+        CAST(SUM(t.hours_logged * c.hourly_cost) AS DOUBLE) as projectCost,
+        CAST(SUM(t.hours_logged) AS DOUBLE) as totalHours
+      FROM ${catalog}.${schema}.fact_timesheet t
+      JOIN ${catalog}.${schema}.dim_consultant c ON t.consultant_id = c.consultant_id
+      JOIN ${catalog}.${schema}.dim_project p ON t.project_id = p.project_id
+      GROUP BY p.client_name, p.project_type
+      ORDER BY projectRevenue DESC
+      LIMIT 10
+    `;
+    const projectsResult = await session.executeStatement(projectsQuery);
+    const topProjects = await projectsResult.fetchAll();
+
     const data = kpis[0];
     const grossMargin = ((data.grossRevenue - data.resourceCost) / data.grossRevenue) * 100;
 
@@ -79,7 +97,8 @@ app.get('/api/dashboard-data', async (req, res) => {
         { month: 'Jun', revenue: 510000, cost: 280000 },
         { month: 'Jul (Live)', revenue: data.grossRevenue, cost: data.resourceCost }
       ],
-      practiceMargins: practiceMargins
+      practiceMargins: practiceMargins,
+      topProjects: topProjects
     });
   } catch (error) {
     console.error("Databricks Error:", error);
