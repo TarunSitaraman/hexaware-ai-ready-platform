@@ -10,9 +10,22 @@ from datetime import datetime, timedelta
 import pandas as pd
 
 # Define catalog and schema
-# NOTE TO USER: Change 'main' to your catalog name if different
-catalog_name = "main"
+# Dynamically determine the best catalog to use
+catalogs = [row['catalog'] for row in spark.sql("SHOW CATALOGS").collect()]
+catalog_name = "hive_metastore" # Fallback
+
+for preferred in ["main", "workspace", "sandbox", "default"]:
+    if preferred in catalogs:
+        catalog_name = preferred
+        break
+
+# If our fallback isn't there, just pick the first available one that isn't system-reserved
+if catalog_name not in catalogs:
+    valid_catalogs = [c for c in catalogs if c not in ("samples", "system")]
+    catalog_name = valid_catalogs[0] if valid_catalogs else catalogs[0]
+
 schema_name = "hexaware_poc"
+print(f"Using catalog: {catalog_name}")
 
 spark.sql(f"CREATE SCHEMA IF NOT EXISTS {catalog_name}.{schema_name}")
 spark.sql(f"USE {catalog_name}.{schema_name}")
