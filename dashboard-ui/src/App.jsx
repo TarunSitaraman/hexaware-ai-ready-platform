@@ -55,6 +55,18 @@ function App() {
     );
   }
 
+  if (!data || !data.kpis) {
+    return (
+      <div className="loading-screen" style={{ textAlign: 'center' }}>
+        <h2 style={{ color: 'var(--semantic-danger)', marginBottom: '1rem' }}>Connection Error</h2>
+        <p style={{ color: 'var(--text-secondary)', maxWidth: '400px' }}>
+          The backend failed to return the data. Please check your backend terminal for SQL errors. 
+          Make sure you have updated DATABRICKS_CATALOG in your .env file and restarted the node server.
+        </p>
+      </div>
+    );
+  }
+
   const formatCurrency = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
   
   const getMarginBadge = (margin) => {
