@@ -10,21 +10,26 @@ app.use(cors());
 
 // Initialize Databricks SQL Client
 const client = new DBSQLClient();
+let isConnected = false;
 
-async function getDatabricksConnection() {
-  await client.connect({
-    host: process.env.DATABRICKS_SERVER_HOSTNAME,
-    path: process.env.DATABRICKS_HTTP_PATH,
-    token: process.env.DATABRICKS_TOKEN
-  });
+async function getDatabricksSession() {
+  if (!isConnected) {
+    console.log("Initializing Databricks connection...");
+    await client.connect({
+      host: process.env.DATABRICKS_SERVER_HOSTNAME,
+      path: process.env.DATABRICKS_HTTP_PATH,
+      token: process.env.DATABRICKS_TOKEN
+    });
+    isConnected = true;
+  }
   return await client.openSession();
 }
 
 app.get('/api/dashboard-data', async (req, res) => {
   let session;
   try {
-    console.log("Connecting to Databricks SQL...");
-    session = await getDatabricksConnection();
+    console.log("Opening session to Databricks SQL...");
+    session = await getDatabricksSession();
     const catalog = process.env.DATABRICKS_CATALOG || 'hive_metastore';
     const schema = 'hexaware_poc';
     
